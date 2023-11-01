@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-center items-center min-h-screen">
+  <div class="flex justify-center items-center min-h-[calc(100vh-92px)]">
     <UCard class="w-96 p-6 flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <font-awesome-icon icon="fa-solid fa-brain" class="text-4xl" />
