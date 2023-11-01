@@ -1,0 +1,19 @@
+{
+  "name": "HiveMind Demo",
+  "pages": {
+    "login": {
+      "title": "Login",
+      "form": {
+        "username": "Username",
+        "password": "Password",
+        "submit": "Login"
+      },
+      "errors": {
+        "invalid": "Invalid username or password"
+      },
+      "links": {
+        "register": "Click here to register"
+      }
+    }
+  }
+}
