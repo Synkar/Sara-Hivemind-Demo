@@ -32,7 +32,7 @@
           <UTooltip
             v-for="(p, i) in pickups"
             :text="'Select ' + p.name"
-            :shortcuts="[i]"
+            :shortcuts="i != 9 ? [i + 1] : [0]"
             class="w-48"
           >
             <UButton
@@ -58,7 +58,7 @@
           <UTooltip
             v-for="(d, i) in deliveries"
             :text="'Select ' + d.name"
-            :shortcuts="['ctrl', i]"
+            :shortcuts="i != 9 ? [metaSymbol, i + 1] : [metaSymbol, 0]"
             class="w-48"
           >
             <UButton
@@ -78,8 +78,8 @@
         </div>
       </div>
       <div class="flex">
-        <UButton block color="gray" @click="createRequest"
-          >Send Request</UButton
+        <UButton block color="gray" @click="createRequest" label="Send Request"
+          ><template #trailing><UKbd>Space</UKbd></template></UButton
         >
       </div>
       <div
@@ -195,6 +195,7 @@ import type { FormSubmitEvent } from "#ui/types";
 import type { OperationList, RequestBody } from "../models/Operation";
 import type { LandmarksList } from "~/models/Locality";
 import { z } from "zod";
+import type { UKbd } from "#ui-colors/components";
 
 definePageMeta({
   middleware: ["auth"],
@@ -210,6 +211,8 @@ const deliveries = ref<LandmarksList[]>([]);
 const savingConfig = ref(false);
 const loadingLandmarks = ref(false);
 const sendingRequest = ref(false);
+
+const { metaSymbol } = useShortcuts();
 
 const configSchema = z.object({
   operation: z.string().optional(),
@@ -505,6 +508,12 @@ defineShortcuts({
     usingInput: false,
     handler: () => {
       setDelivery(8);
+    },
+  },
+  " ": {
+    usingInput: false,
+    handler: async () => {
+      await createRequest();
     },
   },
 });

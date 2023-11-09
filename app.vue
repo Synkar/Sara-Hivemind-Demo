@@ -17,7 +17,7 @@
               v-if="auth.logged"
             />
           </UTooltip>
-          <UTooltip text="Toggle Color Mode" :shortcuts="['ctrl', 'k']">
+          <UTooltip text="Toggle Color Mode" :shortcuts="[metaSymbol, 'K']">
             <ColorMode></ColorMode>
           </UTooltip>
         </div>
@@ -188,6 +188,8 @@ const deleteKey = async (appId: string) => {
     }
   }
 };
+
+const { metaSymbol } = useShortcuts();
 
 defineShortcuts({
   u: {

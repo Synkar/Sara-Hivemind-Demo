@@ -51,6 +51,7 @@ import type { H3Error } from "h3";
 
 const router = useRouter();
 const toast = useToast();
+const auth = useAuth();
 
 const schema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
@@ -94,4 +95,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     }
   }
 }
+
+onMounted(() => {
+  if (auth.logged) {
+    router.push("/dashboard");
+  } else {
+    const trylogin = auth.tryLogin();
+    if (trylogin) {
+      router.push("/dashboard");
+    }
+  }
+});
 </script>
