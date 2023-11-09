@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
           },
         },
       });
-      if (!user.selectedCredential) {
+      if (!user.selectedCredential || user.selectedCredential == -1) {
         await prisma.users.update({
           where: {
             id: user.id,

@@ -106,6 +106,19 @@ export const useAuth = defineStore("auth", {
         throw e;
       }
     },
+    async deleteApp(appId: string) {
+      try {
+        const request = await $fetch(`/api/apps/${appId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+        return request;
+      } catch (e) {
+        throw e;
+      }
+    },
     async setSelectedApp(selectedApp: string) {
       try {
         await $fetch("/api/apps/set", {

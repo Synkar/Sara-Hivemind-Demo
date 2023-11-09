@@ -116,6 +116,7 @@ import type { FormSubmitEvent } from "@nuxt/ui/dist/runtime/types";
 import type { Credentials } from "@prisma/client";
 
 const auth = useAuth();
+const toast = useToast();
 
 const showUserConfig = ref(false);
 let keys = ref<Credentials[]>([]);
@@ -141,7 +142,6 @@ async function onSubmit(event: FormSubmitEvent<UserKeySchema>) {
   keyState.appId = undefined;
   keyState.appSecret = undefined;
 
-  console.log("submit");
   await auth.listApps();
   keys.value = auth.apps as unknown as Credentials[];
   await auth.getSelectedApp();
@@ -149,7 +149,6 @@ async function onSubmit(event: FormSubmitEvent<UserKeySchema>) {
 }
 
 async function setSelectedKey() {
-  console.log(keySelected);
   if (keySelected && keySelected.value) {
     await auth.setSelectedApp(keySelected.value);
   }
@@ -159,8 +158,20 @@ const toggleUserConfig = () => {
   showUserConfig.value = !showUserConfig.value;
 };
 
-const deleteKey = (appId: string) => {
-  console.log(appId);
+const deleteKey = async (appId: string) => {
+  const deleted = await auth.deleteApp(appId);
+  if (deleted) {
+    toast.add({
+      title: "Key Deleted Successfully!",
+      icon: "i-heroicons-check-circle",
+      color: "green",
+    });
+
+    await auth.listApps();
+    keys.value = auth.apps as unknown as Credentials[];
+    await auth.getSelectedApp();
+    keySelected.value = auth.appSelected;
+  }
 };
 
 onMounted(async () => {

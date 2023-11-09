@@ -24,9 +24,9 @@
             >{{ p.name }}</UButton
           >
         </div>
-        <div class="flex text-left w-full px-4">Logs:</div>
+        <div class="flex text-center w-full px-4 justify-center">Logs:</div>
         <div class="flex flex-col whitespace-nowrap gap-2">
-          <span>Delivery</span>
+          <span class="text-right">Delivery</span>
           <UButton
             :color="selectedDelivery == d.uuid ? 'green' : 'purple'"
             v-for="(d, i) in deliveries"
@@ -267,6 +267,8 @@ async function createRequest() {
     console.log(requestBody);
     await hivemind.createRequest(requestBody);
     sendingRequest.value = false;
+    selectedDelivery.value = undefined;
+    selectedPickup.value = undefined;
   } else {
     toast.add({
       icon: "i-heroicons-exclamation-circle",

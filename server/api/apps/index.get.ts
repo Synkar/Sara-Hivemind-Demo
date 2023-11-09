@@ -1,5 +1,5 @@
 import { authToken } from "../../utils/authToken";
-import { Credentials, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
