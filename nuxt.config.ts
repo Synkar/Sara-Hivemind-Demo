@@ -1,7 +1,20 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "@nuxtjs/i18n"],
+  app: {
+    head: {
+      title: "Hivemind Demo",
+      link: [
+        {
+          rel: "icon",
+          type: "image/png",
+          href: "/hivemind.png",
+        },
+      ],
+    },
+  },
+  ssr: false,
+  modules: ["@nuxt/ui", "@nuxtjs/i18n", "@pinia/nuxt"],
   i18n: {
     locales: ["en", "pt"],
     defaultLocale: "en",
@@ -15,6 +28,13 @@ export default defineNuxtConfig({
     plugins: {
       tailwindcss: {},
       autoprefixer: {},
+    },
+  },
+  runtimeConfig: {
+    JWT_SECRET: process.env.JWT_SECRET || "secret-default",
+    public: {
+      BASE_URL: "https://sara.synkar.com/",
+      AUTH_URL: "https://auth.sara.synkar.com/oauth2/token",
     },
   },
 });

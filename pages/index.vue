@@ -48,6 +48,8 @@
 import { z } from "zod";
 import type { FormSubmitEvent } from "#ui/types";
 
+const router = useRouter();
+
 const schema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
   password: z.string().min(6, "Password must be at least 6 characters long"),
@@ -61,6 +63,15 @@ const state = reactive({
 });
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log(event.data);
+  const request = await $fetch("/api/login", {
+    method: "POST",
+    body: JSON.stringify(event.data),
+  });
+  if (request && request.token) {
+    localStorage.setItem("token", request.token);
+    const auth = useAuth();
+    auth.login(request.token);
+    router.push("/dashboard");
+  }
 }
 </script>

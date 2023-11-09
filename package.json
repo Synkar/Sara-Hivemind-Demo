@@ -27,8 +27,13 @@
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/vue-fontawesome": "^3.0.3",
     "@nuxt/ui": "^2.10.0",
+    "@pinia/nuxt": "^0.5.1",
     "@prisma/client": "^4.3.1",
+    "axios": "^1.6.0",
     "bcrypt": "^5.1.1",
+    "njwt": "^2.0.0",
+    "pinia": "^2.1.7",
+    "sara-sdk-ts": "^1.2.8",
     "zod": "^3.22.4"
   }
 }

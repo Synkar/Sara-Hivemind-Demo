@@ -67,15 +67,22 @@ const state = reactive({
   confirmPassword: undefined,
 });
 
-const onSubmit = (event: FormSubmitEvent<Schema>) => {
-  const { data } = event;
-  if (data.password !== data.confirmPassword) {
+const onSubmit = async (event: FormSubmitEvent<Schema>) => {
+  const formData = event.data;
+  if (formData.password !== formData.confirmPassword) {
     form.value.setErrors([
       {
         path: "confirmPassword",
         message: "Passwords do not match",
       },
     ]);
+    return;
   }
+  console.log(formData);
+  const { data } = await useFetch("/api/register", {
+    method: "POST",
+    body: JSON.stringify(formData),
+  });
+  console.log(data);
 };
 </script>

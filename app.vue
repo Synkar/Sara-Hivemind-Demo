@@ -1,6 +1,6 @@
 <template>
   <div>
-    <UCard class="w-full">
+    <UCard class="w-full" :ui="{ rounded: 'rounded-none' }">
       <div class="flex justify-between items-center">
         <div>
           <font-awesome-icon icon="fa-solid fa-brain" class="text-4xl" />
@@ -13,6 +13,7 @@
             square
             variant="link"
             color="gray"
+            v-if="auth.logged"
           />
           <ColorMode></ColorMode>
         </div>
@@ -43,18 +44,18 @@
           </div>
         </template>
         <div class="flex flex-col gap-4">
-          <UForm>
+          <UForm :schema="userKeySchema" :state="keyState" @submit="onSubmit">
             <div class="flex items-end justify-between">
               <UFormGroup label="App Id" name="appId">
                 <UInput
                   placeholder="Type your App Id"
-                  v-model="userState.appId"
+                  v-model="keyState.appId"
                 />
               </UFormGroup>
               <UFormGroup label="App Secret" name="appSecret">
                 <UInput
                   placeholder="Type your App Secret"
-                  v-model="userState.appSecret"
+                  v-model="keyState.appSecret"
                 />
               </UFormGroup>
               <UButton
@@ -68,25 +69,16 @@
           <div class="flex flex-col gap-4">
             <h1>Your Apps:</h1>
             <div class="flex flex-col">
-              <div v-for="k in keys">
+              <div v-for="(k, i) in keys">
                 <div class="flex justify-between items-center w-full">
                   <div>{{ k.appId }}</div>
-                  <div @click="copySecret(k.appId)" v-if="k.showSecret">
-                    <span>{{ secretMap.get(k.appId) }}</span>
+                  <div @click="deleteKey(k.appId)">
                     <UButton
-                      icon="i-heroicons-clipboard"
+                      icon="i-heroicons-trash"
                       square
                       size="sm"
                       variant="link"
-                    />
-                  </div>
-                  <div @click="revealSecret(k.appId)" v-else>
-                    <span class="text-primary">***********</span>
-                    <UButton
-                      icon="i-heroicons-eye"
-                      square
-                      size="sm"
-                      variant="link"
+                      color="red"
                     />
                   </div>
                 </div>
@@ -110,7 +102,7 @@
                 </template>
               </USelectMenu>
             </UFormGroup>
-            <UButton>Save</UButton>
+            <UButton @click="setSelectedKey">Save</UButton>
           </div>
         </template>
       </UCard>
@@ -119,58 +111,82 @@
 </template>
 
 <script setup lang="ts">
-const toast = useToast();
+import { z } from "zod";
+import type { FormSubmitEvent } from "@nuxt/ui/dist/runtime/types";
+import type { Credentials } from "@prisma/client";
 
-type Keys = {
-  appId: string;
-  showSecret?: boolean;
-}[];
+const auth = useAuth();
 
 const showUserConfig = ref(false);
-const keys = ref<Keys>([
-  {
-    appId: "test",
-    showSecret: false,
-  },
-  {
-    appId: "test2",
-    showSecret: false,
-  },
-]);
+let keys = ref<Credentials[]>([]);
 
-const keySelected = ref(keys.value[0].appId);
+const keySelected = ref<string>();
 
-const secretMap = ref<Map<string, string>>(
-  new Map([
-    ["test", "123456"],
-    ["test2", "123456"],
-  ])
-);
+const userKeySchema = z.object({
+  appId: z.string(),
+  appSecret: z.string(),
+});
 
-const userState = reactive({
+type UserKeySchema = z.output<typeof userKeySchema>;
+
+const keyState = reactive({
   appId: undefined,
   appSecret: undefined,
 });
+
+async function onSubmit(event: FormSubmitEvent<UserKeySchema>) {
+  const body = event.data as UserKeySchema;
+
+  await auth.createApp(body);
+  keyState.appId = undefined;
+  keyState.appSecret = undefined;
+
+  console.log("submit");
+  await auth.listApps();
+  keys.value = auth.apps as unknown as Credentials[];
+  await auth.getSelectedApp();
+  keySelected.value = auth.appSelected;
+}
+
+async function setSelectedKey() {
+  console.log(keySelected);
+  if (keySelected && keySelected.value) {
+    await auth.setSelectedApp(keySelected.value);
+  }
+}
 
 const toggleUserConfig = () => {
   showUserConfig.value = !showUserConfig.value;
 };
 
-const revealSecret = (appId: string) => {
-  const key = keys.value.find((k) => k.appId === appId);
-  if (key) {
-    key.showSecret = !key.showSecret;
-  }
+const deleteKey = (appId: string) => {
+  console.log(appId);
 };
 
-const copySecret = (appId: string) => {
-  const key = keys.value.find((k) => k.appId === appId);
-  if (key) {
-    navigator.clipboard.writeText(secretMap.value.get(appId) || "");
-    toast.add({
-      title: "Copied to clipboard",
-      icon: "i-heroicons-check-circle",
-    });
+onMounted(async () => {
+  if (auth.logged) {
+    console.log("mounted");
+    await auth.listApps();
+    keys.value = auth.apps as unknown as Credentials[];
+    await auth.getSelectedApp();
+    keySelected.value = auth.appSelected;
   }
-};
+});
+
+watch(
+  auth,
+  async (newValue, oldValue) => {
+    if (!oldValue.logged && newValue.logged) {
+      console.log("watch");
+      await auth.listApps();
+      keys.value = auth.apps as unknown as Credentials[];
+      await auth.getSelectedApp();
+      keySelected.value = auth.appSelected;
+    }
+  },
+  {
+    deep: true,
+  }
+);
 </script>
+./stores/auth
