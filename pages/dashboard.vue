@@ -4,35 +4,77 @@
       <div class="flex justify-between items-center">
         <h1 class="text-lg text-left">Pickup and Delivery DEMO</h1>
         <div>
-          <UButton
-            @click="toggleConfig"
-            icon="i-heroicons-cog-6-tooth"
-            size="xl"
-            square
-            variant="link"
-            color="gray"
-          />
+          <UTooltip text="Refresh Landmarks" :shortcuts="['R']">
+            <UButton
+              @click="refreshLandmarks"
+              icon="i-heroicons-arrow-path"
+              size="xl"
+              square
+              variant="link"
+              color="blue"
+            />
+          </UTooltip>
+          <UTooltip text="Open Operation Configuration" :shortcuts="['C']">
+            <UButton
+              @click="toggleConfig"
+              icon="i-heroicons-cog-6-tooth"
+              size="xl"
+              square
+              variant="link"
+              color="gray"
+            />
+          </UTooltip>
         </div>
       </div>
       <div class="flex">
         <div class="flex flex-col whitespace-nowrap gap-2">
           <span>Pickup</span>
-          <UButton
+          <UTooltip
             v-for="(p, i) in pickups"
-            @click="selectPickup(p.uuid)"
-            :color="selectedPickup == p.uuid ? 'green' : 'indigo'"
-            >{{ p.name }}</UButton
+            :text="'Select ' + p.name"
+            :shortcuts="[i]"
+            class="w-48"
           >
+            <UButton
+              truncate
+              block
+              @click="selectPickup(p.uuid)"
+              :color="selectedPickup == p.uuid ? 'green' : 'indigo'"
+              :label="p.name"
+            >
+              <template #trailing>
+                <UBadge
+                  color="white"
+                  variant="solid"
+                  :label="'Floor ' + p.floor"
+                ></UBadge>
+              </template>
+            </UButton>
+          </UTooltip>
         </div>
-        <div class="flex text-center w-full px-4 justify-center">Logs:</div>
+        <div class="flex text-center w-full px-4 justify-center">Logs</div>
         <div class="flex flex-col whitespace-nowrap gap-2">
           <span class="text-right">Delivery</span>
-          <UButton
-            :color="selectedDelivery == d.uuid ? 'green' : 'purple'"
+          <UTooltip
             v-for="(d, i) in deliveries"
-            @click="selectDelivery(d.uuid)"
-            >{{ d.name }}</UButton
+            :text="'Select ' + d.name"
+            :shortcuts="['ctrl', i]"
+            class="w-48"
           >
+            <UButton
+              truncate
+              block
+              :color="selectedDelivery == d.uuid ? 'green' : 'purple'"
+              @click="selectDelivery(d.uuid)"
+              :label="d.name"
+              ><template #trailing>
+                <UBadge
+                  color="white"
+                  variant="solid"
+                  :label="'Floor ' + d.floor"
+                ></UBadge> </template
+            ></UButton>
+          </UTooltip>
         </div>
       </div>
       <div class="flex">
@@ -153,6 +195,7 @@ import type { FormSubmitEvent } from "#ui/types";
 import type { OperationList, RequestBody } from "../models/Operation";
 import type { LandmarksList } from "~/models/Locality";
 import { z } from "zod";
+
 definePageMeta({
   middleware: ["auth"],
 });
@@ -279,24 +322,194 @@ async function createRequest() {
   }
 }
 
-onMounted(async () => {
+const refreshLandmarks = async () => {
   if (auth.logged) {
-    await hivemind.listOperations();
-    if (hivemind.operations) operations.value = hivemind.operations;
-    selectedOperation.value = hivemind.getOperationSelected();
-    if (selectedOperation.value) {
-      loadingLandmarks.value = true;
-      configState.operation = selectedOperation.value;
-      await hivemind.retrieveOperation(selectedOperation.value);
-      if (hivemind.operation && hivemind.operation.locality) {
-        await hivemind.listLandmarks(hivemind.operation.locality);
-        if (hivemind.landmarks) {
-          pickups.value = hivemind.landmarks;
-          deliveries.value = hivemind.landmarks;
+    if (!auth.hasCredentials) {
+      await auth.getCredentials();
+    }
+    if (auth.hasCredentials) {
+      await hivemind.listOperations();
+      if (hivemind.operations) operations.value = hivemind.operations;
+      selectedOperation.value = hivemind.getOperationSelected();
+      if (selectedOperation.value) {
+        loadingLandmarks.value = true;
+        configState.operation = selectedOperation.value;
+        await hivemind.retrieveOperation(selectedOperation.value);
+        if (hivemind.operation && hivemind.operation.locality) {
+          await hivemind.listLandmarks(hivemind.operation.locality);
+          if (hivemind.landmarks) {
+            console.log(hivemind.landmarks);
+            pickups.value = hivemind.landmarks;
+            deliveries.value = hivemind.landmarks;
+          }
         }
+        loadingLandmarks.value = false;
+      } else {
+        toast.add({
+          icon: "i-heroicons-exclamation-circle",
+          title: "Please select an operation on configuration",
+          color: "yellow",
+        });
       }
-      loadingLandmarks.value = false;
+    } else {
+      toast.add({
+        icon: "i-heroicons-exclamation-circle",
+        title:
+          "You don't have any App Credentials Registered, click on user icon to set one",
+        color: "red",
+      });
     }
   }
+};
+
+const setPickup = (index: number) => {
+  if (pickups.value[index]) {
+    selectedPickup.value = pickups.value[index].uuid;
+  }
+};
+
+const setDelivery = (index: number) => {
+  if (deliveries.value[index]) {
+    selectedDelivery.value = deliveries.value[index].uuid;
+  }
+};
+
+defineShortcuts({
+  r: {
+    usingInput: false,
+    handler: async () => {
+      await refreshLandmarks();
+    },
+  },
+  c: {
+    usingInput: false,
+    handler: () => {
+      showConfig.value = !showConfig.value;
+    },
+  },
+  0: {
+    usingInput: false,
+    handler: () => {
+      setPickup(9);
+    },
+  },
+  1: {
+    usingInput: false,
+    handler: () => {
+      setPickup(0);
+    },
+  },
+  2: {
+    usingInput: false,
+    handler: () => {
+      setPickup(1);
+    },
+  },
+  3: {
+    usingInput: false,
+    handler: () => {
+      setPickup(2);
+    },
+  },
+  4: {
+    usingInput: false,
+    handler: () => {
+      setPickup(3);
+    },
+  },
+  5: {
+    usingInput: false,
+    handler: () => {
+      setPickup(4);
+    },
+  },
+  6: {
+    usingInput: false,
+    handler: () => {
+      setPickup(5);
+    },
+  },
+  7: {
+    usingInput: false,
+    handler: () => {
+      setPickup(6);
+    },
+  },
+  8: {
+    usingInput: false,
+    handler: () => {
+      setPickup(7);
+    },
+  },
+  9: {
+    usingInput: false,
+    handler: () => {
+      setPickup(8);
+    },
+  },
+  meta_0: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(9);
+    },
+  },
+  meta_1: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(0);
+    },
+  },
+  meta_2: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(1);
+    },
+  },
+  meta_3: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(2);
+    },
+  },
+  meta_4: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(3);
+    },
+  },
+  meta_5: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(4);
+    },
+  },
+  meta_6: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(5);
+    },
+  },
+  meta_7: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(6);
+    },
+  },
+  meta_8: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(7);
+    },
+  },
+  meta_9: {
+    usingInput: false,
+    handler: () => {
+      setDelivery(8);
+    },
+  },
+});
+
+onMounted(async () => {
+  await refreshLandmarks();
 });
 </script>

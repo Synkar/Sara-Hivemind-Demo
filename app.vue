@@ -6,16 +6,20 @@
           <font-awesome-icon icon="fa-solid fa-brain" class="text-4xl" />
         </div>
         <div>
-          <UButton
-            @click="toggleUserConfig"
-            icon="i-heroicons-user"
-            size="xl"
-            square
-            variant="link"
-            color="gray"
-            v-if="auth.logged"
-          />
-          <ColorMode></ColorMode>
+          <UTooltip text="Open User Configuration" :shortcuts="['U']">
+            <UButton
+              @click="toggleUserConfig"
+              icon="i-heroicons-user"
+              size="xl"
+              square
+              variant="link"
+              color="gray"
+              v-if="auth.logged"
+            />
+          </UTooltip>
+          <UTooltip text="Toggle Color Mode" :shortcuts="['ctrl', 'k']">
+            <ColorMode></ColorMode>
+          </UTooltip>
         </div>
       </div>
     </UCard>
@@ -150,8 +154,15 @@ async function onSubmit(event: FormSubmitEvent<UserKeySchema>) {
 
 async function setSelectedKey() {
   if (keySelected && keySelected.value) {
-    await auth.setSelectedApp(keySelected.value);
+    try {
+      const selectedKey = await auth.getSelectedApp();
+      if (selectedKey.appId != keySelected.value)
+        await auth.setSelectedApp(keySelected.value);
+    } catch (e) {
+      await auth.setSelectedApp(keySelected.value);
+    }
   }
+  showUserConfig.value = false;
 }
 
 const toggleUserConfig = () => {
@@ -167,20 +178,42 @@ const deleteKey = async (appId: string) => {
       color: "green",
     });
 
-    await auth.listApps();
-    keys.value = auth.apps as unknown as Credentials[];
-    await auth.getSelectedApp();
-    keySelected.value = auth.appSelected;
+    try {
+      await auth.listApps();
+      keys.value = auth.apps as unknown as Credentials[];
+      await auth.getSelectedApp();
+      keySelected.value = auth.appSelected;
+    } catch (e) {
+      keySelected.value = undefined;
+    }
   }
 };
+
+defineShortcuts({
+  u: {
+    usingInput: false,
+    handler: () => {
+      toggleUserConfig();
+    },
+  },
+});
 
 onMounted(async () => {
   if (auth.logged) {
     console.log("mounted");
     await auth.listApps();
-    keys.value = auth.apps as unknown as Credentials[];
-    await auth.getSelectedApp();
-    keySelected.value = auth.appSelected;
+    if (auth.apps && auth.apps.length > 0) {
+      keys.value = auth.apps as unknown as Credentials[];
+      await auth.getSelectedApp();
+      keySelected.value = auth.appSelected;
+    } else {
+      toast.add({
+        icon: "i-heroicons-exclamation-circle",
+        title:
+          "You don't have any App Credentials Registered, click on user icon to set one",
+        color: "yellow",
+      });
+    }
   }
 });
 

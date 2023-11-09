@@ -47,8 +47,10 @@
 <script setup lang="ts">
 import { z } from "zod";
 import type { FormSubmitEvent } from "#ui/types";
+import type { H3Error } from "h3";
 
 const router = useRouter();
+const toast = useToast();
 
 const schema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
@@ -63,15 +65,33 @@ const state = reactive({
 });
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  const request = await $fetch("/api/login", {
-    method: "POST",
-    body: JSON.stringify(event.data),
-  });
-  if (request && request.token) {
-    localStorage.setItem("token", request.token);
-    const auth = useAuth();
-    auth.login(request.token);
-    router.push("/dashboard");
+  try {
+    const request = await $fetch("/api/login", {
+      method: "POST",
+      body: JSON.stringify(event.data),
+    });
+    if (request && request.token) {
+      localStorage.setItem("token", request.token);
+      const auth = useAuth();
+      auth.login(request.token);
+      router.push("/dashboard");
+    }
+  } catch (e) {
+    console.log(e);
+    const error = e as H3Error;
+    if (error.statusCode == 401) {
+      toast.add({
+        color: "red",
+        title: "Username or Password Incorrect!",
+        icon: "i-heroicons-exclamation-circle",
+      });
+    } else {
+      toast.add({
+        color: "red",
+        title: "Something Strange Happened!",
+        icon: "i-heroicons-exclamation-circle",
+      });
+    }
   }
 }
 </script>

@@ -9,6 +9,15 @@ const isDark = computed({
     colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
   },
 });
+
+defineShortcuts({
+  meta_k: {
+    usingInput: false,
+    handler: () => {
+      colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
+    },
+  },
+});
 </script>
 
 <template>

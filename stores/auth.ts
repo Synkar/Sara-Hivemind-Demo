@@ -73,8 +73,13 @@ export const useAuth = defineStore("auth", {
       this.hasCredentials = false;
       this.appSelected = "";
     },
-    getCredentials() {
-      return this.appSelected;
+    async getCredentials() {
+      if (this.appSelected) return this.appSelected;
+      else {
+        const app = await this.getSelectedApp();
+        this.appSelected = app.appId;
+        return this.appSelected;
+      }
     },
     async listApps() {
       try {

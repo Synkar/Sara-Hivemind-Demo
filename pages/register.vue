@@ -48,8 +48,11 @@
 <script setup lang="ts">
 import { z } from "zod";
 import type { FormSubmitEvent } from "#ui/types";
+import type { H3Error } from "h3";
 
 const form = ref();
+const toast = useToast();
+const router = useRouter();
 
 const schema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters long"),
@@ -78,11 +81,26 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
     ]);
     return;
   }
-  console.log(formData);
-  const { data } = await useFetch("/api/register", {
-    method: "POST",
-    body: JSON.stringify(formData),
-  });
-  console.log(data);
+  try {
+    const request = await $fetch("/api/register", {
+      method: "POST",
+      body: JSON.stringify(formData),
+    });
+    if (request) {
+      toast.add({
+        color: "green",
+        title: "User created Successfully!",
+        icon: "i-heroicons-circle-check",
+      });
+      router.push("/");
+    }
+  } catch (e) {
+    const error = e as H3Error;
+    toast.add({
+      color: "red",
+      title: error.message,
+      icon: "i-heroicons-exclamation-circle",
+    });
+  }
 };
 </script>
