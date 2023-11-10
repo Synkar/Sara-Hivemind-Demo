@@ -31,3 +31,24 @@ export async function authToken(event: H3Event<EventHandlerRequest>) {
     });
   }
 }
+
+export async function decodeToken(token: string) {
+  const JWT_SECRET = process.env.JWT_SECRET || "secret-default";
+  try {
+    const verifyJwt = nJwt.verify(token, JWT_SECRET);
+    if (verifyJwt && verifyJwt.body) {
+      return verifyJwt.body.toJSON();
+    } else {
+      throw createError({
+        statusCode: 500,
+        message: "Something Strange Happened when try to decode token",
+      });
+    }
+  } catch (e) {
+    console.log(e);
+    throw createError({
+      statusCode: 401,
+      message: "Invalid Token!",
+    });
+  }
+}

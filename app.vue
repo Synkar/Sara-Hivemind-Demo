@@ -6,7 +6,11 @@
           <font-awesome-icon icon="fa-solid fa-brain" class="text-4xl" />
         </div>
         <div>
-          <UTooltip text="Open User Configuration" :shortcuts="['U']">
+          <UTooltip
+            v-if="auth.logged"
+            text="Open User Configuration"
+            :shortcuts="['U']"
+          >
             <UButton
               @click="toggleUserConfig"
               icon="i-heroicons-user"
@@ -14,7 +18,6 @@
               square
               variant="link"
               color="gray"
-              v-if="auth.logged"
             />
           </UTooltip>
           <UTooltip text="Toggle Color Mode" :shortcuts="[metaSymbol, 'K']">
@@ -118,9 +121,11 @@
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui/dist/runtime/types";
 import type { Credentials } from "@prisma/client";
+import type { H3Error } from "h3";
 
 const auth = useAuth();
 const toast = useToast();
+const router = useRouter();
 
 const showUserConfig = ref(false);
 let keys = ref<Credentials[]>([]);
@@ -235,4 +240,3 @@ watch(
   }
 );
 </script>
-./stores/auth

@@ -34,6 +34,8 @@
     "njwt": "^2.0.0",
     "pinia": "^2.1.7",
     "sara-sdk-ts": "^1.2.8",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
     "zod": "^3.22.4"
   }
 }

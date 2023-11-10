@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-center items-center container mx-auto px-4">
+  <div class="flex flex-col justify-center items-center container mx-auto px-4">
     <div class="flex flex-col gap-4 w-full mt-4">
       <div class="flex justify-between items-center">
         <h1 class="text-lg text-left">Pickup and Delivery DEMO</h1>
@@ -26,14 +26,14 @@
           </UTooltip>
         </div>
       </div>
-      <div class="flex">
-        <div class="flex flex-col whitespace-nowrap gap-2">
-          <span>Pickup</span>
+      <div class="flex items-start">
+        <div class="flex flex-col whitespace-nowrap gap-2 w-40">
+          <span class="w-40">Pickup</span>
           <UTooltip
             v-for="(p, i) in pickups"
             :text="'Select ' + p.name"
             :shortcuts="i != 9 ? [i + 1] : [0]"
-            class="w-48"
+            class="w-40"
           >
             <UButton
               truncate
@@ -52,14 +52,25 @@
             </UButton>
           </UTooltip>
         </div>
-        <div class="flex text-center w-full px-4 justify-center">Logs</div>
-        <div class="flex flex-col whitespace-nowrap gap-2">
-          <span class="text-right">Delivery</span>
+        <div class="flex flex-col text-center w-full px-4 justify-center gap-2">
+          <div>Logs</div>
+          <UCard
+            class="text-left"
+            :ui="{ body: { padding: 'px-1 py-1 sm:p-1' } }"
+            ><div
+              id="logger"
+              v-html="log"
+              class="h-[418px] overflow-y-scroll p-1 m-1"
+            ></div
+          ></UCard>
+        </div>
+        <div class="flex flex-col whitespace-nowrap gap-2 w-40">
+          <span class="text-right w-40">Delivery</span>
           <UTooltip
             v-for="(d, i) in deliveries"
             :text="'Select ' + d.name"
             :shortcuts="i != 9 ? [metaSymbol, i + 1] : [metaSymbol, 0]"
-            class="w-48"
+            class="w-40"
           >
             <UButton
               truncate
@@ -97,6 +108,44 @@
         Sending Request...
       </div>
     </div>
+    <UAccordion
+      :items="tableAccordion"
+      class="mt-4"
+      :ui="{ item: { padding: 'pt-0 pb-0' }, default: { class: 'mb-0' } }"
+    >
+      <template #default="{ item, index, open }">
+        <UButton
+          color="gray"
+          variant="solid"
+          class="border-b border-gray-200 dark:border-gray-700"
+          :ui="{ rounded: 'rounded-b-none', padding: { sm: 'p-3' } }"
+        >
+          <template #leading>
+            <div
+              class="w-6 h-6 rounded-full bg-primary-500 dark:bg-primary-400 flex items-center justify-center -my-1"
+            >
+              <UIcon
+                :name="item.icon"
+                class="w-4 h-4 text-white dark:text-gray-900"
+              />
+            </div>
+          </template>
+
+          <span class="truncate text-xl ml-2">{{ item.label }}</span>
+
+          <template #trailing>
+            <UIcon
+              name="i-heroicons-chevron-right-20-solid"
+              class="w-5 h-5 ms-auto transform transition-transform duration-200"
+              :class="[open && 'rotate-90']"
+            />
+          </template>
+        </UButton>
+      </template>
+      <template #requests>
+        <Table :operation="selectedOperation"></Table>
+      </template>
+    </UAccordion>
     <UModal v-model="showConfig">
       <UCard
         :ui="{
@@ -196,6 +245,7 @@ import type { OperationList, RequestBody } from "../models/Operation";
 import type { LandmarksList } from "~/models/Locality";
 import { z } from "zod";
 import type { UKbd } from "#ui-colors/components";
+import { io } from "socket.io-client";
 
 definePageMeta({
   middleware: ["auth"],
@@ -518,7 +568,48 @@ defineShortcuts({
   },
 });
 
+const socket = io({
+  extraHeaders: {
+    token: auth.accessToken,
+  },
+});
+
+type SocketIO = {
+  action: string;
+  data: string;
+  issuer: string;
+  service: string;
+};
+
+const log = ref<string>("");
+
+const messages = ref<SocketIO[]>([]);
+socket.on("message", (socketMsg: SocketIO | string) => {
+  console.log(socketMsg);
+  if (typeof socketMsg != "string") {
+    messages.value.push(socketMsg);
+    const action = socketMsg.action;
+    const data = socketMsg.data;
+    log.value += `<p>[${action}]: ${JSON.stringify(data)}</p>`;
+    nextTick(() => {
+      const logger = document.getElementById("logger");
+      if (logger) logger.scrollTop = logger.scrollHeight;
+    });
+  }
+});
+
 onMounted(async () => {
+  socket.connect();
   await refreshLandmarks();
 });
+
+onUnmounted(() => socket.close());
+
+const tableAccordion = [
+  {
+    label: "Requests",
+    icon: "i-heroicons-arrows-right-left",
+    slot: "requests",
+  },
+];
 </script>

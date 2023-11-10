@@ -28,3 +28,9 @@ export async function OperationInstance(event: H3Event<EventHandlerRequest>) {
 
   return new hivemind.Operations();
 }
+
+export async function RequestsInstance(event: H3Event<EventHandlerRequest>) {
+  const hivemind = await HivemindInstance(event);
+
+  return new hivemind.Requests();
+}

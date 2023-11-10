@@ -3,6 +3,7 @@ import type { LandmarksList } from "~/models/Locality";
 4;
 import type { RequestBody, RequestRetrieve } from "~/models/Operation";
 import type { OperationList, OperationsRetrieve } from "~/models/Operation";
+import type { PaginatedModel } from "~/models/Paginated";
 
 type HivemindState = {
   operations?: OperationList[];
@@ -10,6 +11,7 @@ type HivemindState = {
   landmarks?: LandmarksList[];
   operationSelected?: string;
   request?: RequestRetrieve;
+  requests?: PaginatedModel<RequestRetrieve>;
 };
 
 export const useHivemind = defineStore("hivemind", {
@@ -19,6 +21,7 @@ export const useHivemind = defineStore("hivemind", {
     landmarks: undefined,
     operationSelected: undefined,
     request: undefined,
+    requests: undefined,
   }),
   actions: {
     setOperationSelected(uuid: string) {
@@ -90,6 +93,24 @@ export const useHivemind = defineStore("hivemind", {
       );
       this.request = request;
       return this.request;
+    },
+    async listRequests(operation: string, page = 1, limit = 10) {
+      const token = localStorage.getItem("token");
+      const request = await $fetch(
+        `/api/hivemind/operations/${operation}/request`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          query: {
+            page,
+            limit,
+          },
+        }
+      );
+      this.requests = request;
+      return this.requests;
     },
   },
 });

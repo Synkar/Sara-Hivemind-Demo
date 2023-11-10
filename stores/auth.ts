@@ -1,5 +1,6 @@
 import type { Credentials } from "@prisma/client";
 import { defineStore } from "pinia";
+import nJwt from "njwt";
 
 type User = Partial<{
   id: number;
@@ -59,6 +60,24 @@ export const useAuth = defineStore("auth", {
       if (process.client) {
         const token = localStorage.getItem("token");
         if (token) {
+          const base64Url = token.split(".")[1];
+          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+          const jsonPayload = decodeURIComponent(
+            window
+              .atob(base64)
+              .split("")
+              .map(function (c) {
+                return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+              })
+              .join("")
+          );
+
+          const decoded = JSON.parse(jsonPayload);
+          if (Date.now() >= decoded.exp * 1000) {
+            localStorage.removeItem("token");
+            this.logout();
+            return false;
+          }
           this.login(token);
           return true;
         }
