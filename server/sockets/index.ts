@@ -3,13 +3,13 @@ import { Socket, Server } from "socket.io";
 import { io } from "socket.io-client";
 import { decodeToken } from "../utils/authToken";
 import { getCredentials } from "../utils/getCredentials";
-import { auth } from "../utils/authSara";
 import { Sara } from "sara-sdk-ts";
 
 export default (nuxtServer: NuxtServer) => {
   const ioServer = new Server(nuxtServer);
   ioServer.on("connection", async (socket: Socket) => {
-    const { token } = socket.handshake.headers;
+    const { token, room } = socket.handshake.query;
+    console.log(room);
     const decodedToken = await decodeToken(token as string);
     const credentials = await getCredentials(decodedToken);
     const session = await Sara.auth(credentials.appId, credentials.appSecret);
@@ -22,7 +22,7 @@ export default (nuxtServer: NuxtServer) => {
       timeout: 10000,
       transports: ["websocket", "polling"],
       query: {
-        room: "hivemind",
+        room,
       },
     });
     socketClient.on("connect", () => {

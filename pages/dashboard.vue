@@ -69,7 +69,7 @@
           <UTooltip
             v-for="(d, i) in deliveries"
             :text="'Select ' + d.name"
-            :shortcuts="i != 9 ? [metaSymbol, i + 1] : [metaSymbol, 0]"
+            :shortcuts="i != 9 ? [metaSymbol, i + 1] : [metaSymbol, "0"]"
             class="w-40"
           >
             <UButton
@@ -243,9 +243,19 @@
 import type { FormSubmitEvent } from "#ui/types";
 import type { OperationList, RequestBody } from "../models/Operation";
 import type { LandmarksList } from "~/models/Locality";
+import type {
+  DataUnion,
+  LogActions,
+  RequestAssignedData,
+  RequestCancelledData,
+  RequestFinishedData,
+  RequestLockedData,
+  RequestRunningData,
+  RequestStageFinishedData,
+  RequestStageStartedData,
+} from "~/models/Logs";
 import { z } from "zod";
-import type { UKbd } from "#ui-colors/components";
-import { io } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 
 definePageMeta({
   middleware: ["auth"],
@@ -397,6 +407,26 @@ const refreshLandmarks = async () => {
           }
         }
         loadingLandmarks.value = false;
+        socket.value = io({
+          query: {
+            token: auth.accessToken,
+            room: selectedOperation.value,
+          },
+        });
+
+        socket.value.on("message", (socketMsg: SocketIO | string) => {
+          console.log(socketMsg);
+          if (typeof socketMsg != "string") {
+            messages.value.push(socketMsg);
+            const action = socketMsg.action;
+            const data = socketMsg.data;
+            log.value += `<p>${generateMessage(socketMsg)}}</p>`;
+            nextTick(() => {
+              const logger = document.getElementById("logger");
+              if (logger) logger.scrollTop = logger.scrollHeight;
+            });
+          }
+        });
       } else {
         toast.add({
           icon: "i-heroicons-exclamation-circle",
@@ -568,42 +598,79 @@ defineShortcuts({
   },
 });
 
-const socket = io({
-  extraHeaders: {
-    token: auth.accessToken,
-  },
-});
-
 type SocketIO = {
-  action: string;
-  data: string;
+  action: LogActions;
+  data: {
+    robotId: string;
+    localitySlug: string;
+    data?: DataUnion;
+  };
   issuer: string;
-  service: string;
+  service: "hivemind";
+};
+
+const generateMessage = (message: SocketIO) => {
+  const robotName = message.data.robotId;
+  switch (message.action) {
+    case "REQUEST_ASSIGNED": {
+      const data = message.data.data as RequestAssignedData;
+      return `[${robotName}]: Request #${data.externalId} Assigned to Robot`;
+    }
+    case "REQUEST_RUNNING": {
+      const data = message.data.data as RequestRunningData;
+      return `[${robotName}]: Request #${data.externalId} is Running`;
+    }
+    case "REQUEST_STAGE_STARTED": {
+      const data = message.data.data as RequestStageStartedData;
+      return `[${robotName}]: (${data.nodeType}) Request #${data.externalId} Started Stage ${data.requestStage}`;
+    }
+    case "REQUEST_STAGE_FINISHED": {
+      const data = message.data.data as RequestStageFinishedData;
+      return `[${robotName}]: (${data.nodeType}) Request #${data.externalId} Finished Stage ${data.requestStage}`;
+    }
+    case "REQUEST_LOCKED": {
+      const data = message.data.data as RequestLockedData;
+      return `[${robotName}]: Request #${data.externalId} Locked <UButton
+            icon="i-heroicons-lock-open"
+            size="2xs"
+            color="blue"
+            variant="outline"
+            square
+          />`;
+    }
+    case "REQUEST_CANCELLED": {
+      const data = message.data.data as RequestCancelledData;
+      return `[${robotName}]: Request #${data.externalId} Cancelled, reason: ${data.cancelledReason}`;
+    }
+    case "REQUEST_FINISHED": {
+      const data = message.data.data as RequestFinishedData;
+      return `[${robotName}]: Request #${data.externalId} Finished Successfully`;
+    }
+    case "ROBOT_WAKEUP": {
+      return `[${robotName}]: Robot Wakeup`;
+    }
+    case "ROBOT_SHUTDOWN": {
+      return `[${robotName}]: Robot Shutdown`;
+    }
+    default:
+      return `[UNKNOWN]: Message not found!`;
+  }
 };
 
 const log = ref<string>("");
 
 const messages = ref<SocketIO[]>([]);
-socket.on("message", (socketMsg: SocketIO | string) => {
-  console.log(socketMsg);
-  if (typeof socketMsg != "string") {
-    messages.value.push(socketMsg);
-    const action = socketMsg.action;
-    const data = socketMsg.data;
-    log.value += `<p>[${action}]: ${JSON.stringify(data)}</p>`;
-    nextTick(() => {
-      const logger = document.getElementById("logger");
-      if (logger) logger.scrollTop = logger.scrollHeight;
-    });
-  }
-});
+
+const socket = ref<Socket>();
 
 onMounted(async () => {
-  socket.connect();
+  if (socket.value) socket.value.connect();
   await refreshLandmarks();
 });
 
-onUnmounted(() => socket.close());
+onUnmounted(() => {
+  if (socket.value) socket.value.close();
+});
 
 const tableAccordion = [
   {
