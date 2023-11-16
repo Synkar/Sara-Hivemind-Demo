@@ -56,7 +56,7 @@ export type RequestRetrieve = {
     name: string;
     localitySlug: string;
   };
-  robotAssigned?: string | null;
+  robotAssigned?: string;
   pickup: {
     status: string;
     landmark: LandmarksList;

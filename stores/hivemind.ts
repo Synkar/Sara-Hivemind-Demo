@@ -13,6 +13,7 @@ type HivemindState = {
   request?: RequestRetrieve;
   requests?: PaginatedModel<RequestRetrieve>;
   externalId: number;
+  routes?: any;
 };
 
 export const useHivemind = defineStore("hivemind", {
@@ -24,6 +25,7 @@ export const useHivemind = defineStore("hivemind", {
     request: undefined,
     requests: undefined,
     externalId: 0,
+    routes: undefined,
   }),
   actions: {
     setOperationSelected(uuid: string) {
@@ -148,6 +150,21 @@ export const useHivemind = defineStore("hivemind", {
       } catch (e) {
         console.log(e);
         return false;
+      }
+    },
+    async listRoutes(robot: string) {
+      try {
+        const token = localStorage.getItem("token");
+        const request = await $fetch(`/api/hivemind/commands/routes/${robot}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        this.routes = request;
+        return request;
+      } catch (e) {
+        console.log(e);
       }
     },
     setExternalId(i: number) {

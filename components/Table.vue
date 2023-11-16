@@ -309,6 +309,15 @@ const listRequests = async () => {
     await hivemind.listRequests(props.operation, page.value, pageCount.value);
     if (hivemind.requests) {
       pageTotal.value = hivemind.requests.count;
+      for (const r in hivemind.requests.results) {
+        if (hivemind.requests.results[r].status == "RUNNING") {
+          const robot = hivemind.requests.results[r].robotAssigned;
+          if (robot) {
+            const routes = await hivemind.listRoutes(robot);
+            nodesOfRequest.set(hivemind.requests.results[r].uuid, routes);
+          }
+        }
+      }
     }
   }
   pending.value = false;
