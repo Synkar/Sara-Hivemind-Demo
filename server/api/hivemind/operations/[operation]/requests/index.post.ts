@@ -3,7 +3,6 @@ import { RequestBody, RequestRetrieve } from "~/models/Operation";
 
 export default defineEventHandler(async (event) => {
   const body = (await readBody(event)) as RequestBody;
-  console.log(body);
   const axios = await axiosHandler(event);
   const operation = getRouterParam(event, "operation");
 

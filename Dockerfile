@@ -25,7 +25,9 @@ RUN npx prisma db push
 RUN npm run build
 
 # start runner image
-FROM node:18.17.1-alpine3.17
+FROM node:18.17.1-alpine3.17 as runner
+
+WORKDIR /app
 
 COPY --from=builder /app /app
 

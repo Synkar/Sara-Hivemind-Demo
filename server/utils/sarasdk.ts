@@ -34,3 +34,16 @@ export async function RequestsInstance(event: H3Event<EventHandlerRequest>) {
 
   return new hivemind.Requests();
 }
+
+export async function IAMInstance(event: H3Event<EventHandlerRequest>) {
+  const session = await saraSession(event);
+
+  const iam = new Sara.IAM(session);
+  return iam;
+}
+
+export async function RobotsInstance(event: H3Event<EventHandlerRequest>) {
+  const iam = await IAMInstance(event);
+
+  return new iam.Robots();
+}

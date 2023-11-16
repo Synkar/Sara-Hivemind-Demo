@@ -9,12 +9,9 @@ export default (nuxtServer: NuxtServer) => {
   const ioServer = new Server(nuxtServer);
   ioServer.on("connection", async (socket: Socket) => {
     const { token, room } = socket.handshake.query;
-    console.log(room);
     const decodedToken = await decodeToken(token as string);
     const credentials = await getCredentials(decodedToken);
     const session = await Sara.auth(credentials.appId, credentials.appSecret);
-    console.log(session.access_token);
-    socket.emit("message", "Connected!");
     const socketClient = io("https://sara.synkar.com", {
       path: "/v1/io",
       forceNew: true,
@@ -27,8 +24,8 @@ export default (nuxtServer: NuxtServer) => {
     });
     socketClient.on("connect", () => {
       socket.emit("message", {
-        action: "log",
-        data: "Connected To Socket.IO",
+        action: "CONNECTED",
+        data: "Connected To Sara.IO",
         issuer: socket.id,
         service: "hivemind",
       });

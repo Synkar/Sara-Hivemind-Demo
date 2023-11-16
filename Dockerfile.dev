@@ -1,20 +1,19 @@
-ARG NODE_VERSION=18.14.2
+FROM node:18.17.1-alpine3.17
 
-FROM node:${NODE_VERSION}-slim as base
+WORKDIR /app
 
-ENV NODE_ENV=development
+RUN apk update && apk upgrade
+RUN apk add git
 
-WORKDIR /src
+COPY ./package*.json /app/
 
-# Build
-FROM base as build
+RUN npm install && npm cache clean --force
 
-COPY --link package.json package-lock.json ./
-RUN npm install
+ADD . /app
 
-# Run
-FROM base
+RUN apk add openssl1.1-compat
+RUN npx prisma db push
 
-COPY --from=build /src/node_modules /src/node_modules
+COPY . .
 
-CMD [ "npm", "run", "dev" ]
+ENV PATH ./node_modules/.bin/:$PATH

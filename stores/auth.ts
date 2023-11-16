@@ -109,7 +109,6 @@ export const useAuth = defineStore("auth", {
           },
         });
         this.apps = JSON.parse(JSON.stringify(request));
-        console.log(this.apps);
         return this.apps;
       } catch (e) {
         throw e;

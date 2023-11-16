@@ -1,12 +1,11 @@
 import { axiosHandler } from "~/server/utils/axios";
-import { RequestBody, RequestRetrieve } from "~/models/Operation";
+import { RequestRetrieve } from "~/models/Operation";
 import { PaginatedModel } from "~/models/Paginated";
 
 export default defineEventHandler(async (event) => {
   const axios = await axiosHandler(event);
   const operation = getRouterParam(event, "operation");
   const query = getQuery(event);
-  console.log(query);
 
   const str =
     "?" +

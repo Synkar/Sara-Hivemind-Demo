@@ -15,6 +15,9 @@ export default defineNuxtConfig({
       ],
     },
   },
+  ui: {
+    global: true,
+  },
   ssr: false,
   modules: ["@nuxt/ui", "@nuxtjs/i18n", "@pinia/nuxt"],
   i18n: {

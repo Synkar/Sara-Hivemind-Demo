@@ -19,6 +19,7 @@ export default defineEventHandler(async (event) => {
       id: undefined,
     };
   } catch (e) {
+    console.log(e);
     throw createError({
       statusCode: 400,
       message: "Please verify your information and try again!",

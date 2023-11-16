@@ -4,6 +4,7 @@
       <div class="flex justify-between items-center">
         <h1 class="text-lg text-left">Pickup and Delivery DEMO</h1>
         <div>
+          <!--
           <UTooltip text="Refresh Landmarks" :shortcuts="['R']">
             <UButton
               @click="refreshLandmarks"
@@ -14,7 +15,18 @@
               color="blue"
             />
           </UTooltip>
-          <UTooltip text="Open Operation Configuration" :shortcuts="['C']">
+          -->
+          <UTooltip text="Clear Logs" :shortcuts="['C']">
+            <UButton
+              @click="clearLogs"
+              icon="i-heroicons-minus-circle"
+              size="xl"
+              square
+              variant="link"
+              color="gray"
+            />
+          </UTooltip>
+          <UTooltip text="Open Operation Configuration" :shortcuts="['G']">
             <UButton
               @click="toggleConfig"
               icon="i-heroicons-cog-6-tooth"
@@ -32,7 +44,7 @@
           <UTooltip
             v-for="(p, i) in pickups"
             :text="'Select ' + p.name"
-            :shortcuts="i != 9 ? [i + 1] : [0]"
+            :shortcuts="i != 9 ? [(i + 1).toString()] : ['0']"
             class="w-40"
           >
             <UButton
@@ -69,7 +81,9 @@
           <UTooltip
             v-for="(d, i) in deliveries"
             :text="'Select ' + d.name"
-            :shortcuts="i != 9 ? [metaSymbol, i + 1] : [metaSymbol, "0"]"
+            :shortcuts="
+              i != 9 ? [metaSymbol, (i + 1).toString()] : [metaSymbol, '0']
+            "
             class="w-40"
           >
             <UButton
@@ -264,6 +278,7 @@ definePageMeta({
 const auth = useAuth();
 const hivemind = useHivemind();
 const toast = useToast();
+const robots = useRobots();
 
 const pickups = ref<LandmarksList[]>([]);
 const deliveries = ref<LandmarksList[]>([]);
@@ -351,6 +366,7 @@ async function onSubmit(event: FormSubmitEvent<ConfigSchema>) {
 }
 
 async function createRequest() {
+  const externalId = hivemind.getExternalId();
   if (selectedPickup.value && selectedDelivery.value) {
     sendingRequest.value = true;
     const requestBody: RequestBody = {
@@ -369,12 +385,13 @@ async function createRequest() {
         ],
         landmark: selectedDelivery.value,
       },
+      externalId: externalId.toString(),
     };
-    console.log(requestBody);
     await hivemind.createRequest(requestBody);
     sendingRequest.value = false;
     selectedDelivery.value = undefined;
     selectedPickup.value = undefined;
+    hivemind.incrementExternalId();
   } else {
     toast.add({
       icon: "i-heroicons-exclamation-circle",
@@ -401,32 +418,28 @@ const refreshLandmarks = async () => {
         if (hivemind.operation && hivemind.operation.locality) {
           await hivemind.listLandmarks(hivemind.operation.locality);
           if (hivemind.landmarks) {
-            console.log(hivemind.landmarks);
             pickups.value = hivemind.landmarks;
             deliveries.value = hivemind.landmarks;
           }
         }
         loadingLandmarks.value = false;
-        socket.value = io({
-          query: {
-            token: auth.accessToken,
-            room: selectedOperation.value,
-          },
-        });
+        if (!socket.value) {
+          socket.value = io({
+            query: {
+              token: auth.accessToken,
+              room: selectedOperation.value,
+            },
+          });
 
-        socket.value.on("message", (socketMsg: SocketIO | string) => {
-          console.log(socketMsg);
-          if (typeof socketMsg != "string") {
+          socket.value.on("message", async (socketMsg: SocketIO) => {
             messages.value.push(socketMsg);
-            const action = socketMsg.action;
-            const data = socketMsg.data;
-            log.value += `<p>${generateMessage(socketMsg)}}</p>`;
+            log.value += `<p>${await generateMessage(socketMsg)}</p>`;
             nextTick(() => {
               const logger = document.getElementById("logger");
               if (logger) logger.scrollTop = logger.scrollHeight;
             });
-          }
-        });
+          });
+        }
       } else {
         toast.add({
           icon: "i-heroicons-exclamation-circle",
@@ -464,7 +477,7 @@ defineShortcuts({
       await refreshLandmarks();
     },
   },
-  c: {
+  g: {
     usingInput: false,
     handler: () => {
       showConfig.value = !showConfig.value;
@@ -600,60 +613,70 @@ defineShortcuts({
 
 type SocketIO = {
   action: LogActions;
-  data: {
-    robotId: string;
-    localitySlug: string;
-    data?: DataUnion;
-  };
+  data:
+    | {
+        robotId: string;
+        localitySlug: string;
+        data?: DataUnion;
+      }
+    | string;
   issuer: string;
   service: "hivemind";
 };
 
-const generateMessage = (message: SocketIO) => {
-  const robotName = message.data.robotId;
-  switch (message.action) {
-    case "REQUEST_ASSIGNED": {
-      const data = message.data.data as RequestAssignedData;
-      return `[${robotName}]: Request #${data.externalId} Assigned to Robot`;
-    }
-    case "REQUEST_RUNNING": {
-      const data = message.data.data as RequestRunningData;
-      return `[${robotName}]: Request #${data.externalId} is Running`;
-    }
-    case "REQUEST_STAGE_STARTED": {
-      const data = message.data.data as RequestStageStartedData;
-      return `[${robotName}]: (${data.nodeType}) Request #${data.externalId} Started Stage ${data.requestStage}`;
-    }
-    case "REQUEST_STAGE_FINISHED": {
-      const data = message.data.data as RequestStageFinishedData;
-      return `[${robotName}]: (${data.nodeType}) Request #${data.externalId} Finished Stage ${data.requestStage}`;
-    }
-    case "REQUEST_LOCKED": {
-      const data = message.data.data as RequestLockedData;
-      return `[${robotName}]: Request #${data.externalId} Locked <UButton
+const clearLogs = async () => {
+  log.value = "";
+};
+
+const generateMessage = async (message: SocketIO) => {
+  if (typeof message.data != "string") {
+    const robotName = await robots.getRobotName(message.data.robotId);
+    switch (message.action) {
+      case "REQUEST_ASSIGNED": {
+        const data = message.data.data as RequestAssignedData;
+        return `[${robotName}]: Request #${data.externalRequestId} Assigned`;
+      }
+      case "REQUEST_RUNNING": {
+        const data = message.data.data as RequestRunningData;
+        return `[${robotName}]: Request #${data.externalRequestId} is Running`;
+      }
+      case "REQUEST_STAGE_STARTED": {
+        const data = message.data.data as RequestStageStartedData;
+        return `[${robotName}]: (${data.nodeType}) Request #${data.externalRequestId} Started Stage ${data.requestStage}`;
+      }
+      case "REQUEST_STAGE_FINISHED": {
+        const data = message.data.data as RequestStageFinishedData;
+        return `[${robotName}]: (${data.nodeType}) Request #${data.externalRequestId} Finished Stage ${data.requestStage}`;
+      }
+      case "REQUEST_LOCKED": {
+        const data = message.data.data as RequestLockedData;
+        return `[${robotName}]: Request #${data.externalRequestId} Locked <UButton
             icon="i-heroicons-lock-open"
             size="2xs"
             color="blue"
             variant="outline"
             square
           />`;
+      }
+      case "REQUEST_CANCELLED": {
+        const data = message.data.data as RequestCancelledData;
+        return `[${robotName}]: Request #${data.externalRequestId} Cancelled, reason: ${data.cancelledReason}`;
+      }
+      case "REQUEST_FINISHED": {
+        const data = message.data.data as RequestFinishedData;
+        return `[${robotName}]: Request #${data.externalRequestId} Finished Successfully`;
+      }
+      case "ROBOT_WAKEUP": {
+        return `[${robotName}]: Robot Wakeup`;
+      }
+      case "ROBOT_SHUTDOWN": {
+        return `[${robotName}]: Robot Shutdown`;
+      }
+      default:
+        return `[UNKNOWN]: ${JSON.stringify(message.data)}`;
     }
-    case "REQUEST_CANCELLED": {
-      const data = message.data.data as RequestCancelledData;
-      return `[${robotName}]: Request #${data.externalId} Cancelled, reason: ${data.cancelledReason}`;
-    }
-    case "REQUEST_FINISHED": {
-      const data = message.data.data as RequestFinishedData;
-      return `[${robotName}]: Request #${data.externalId} Finished Successfully`;
-    }
-    case "ROBOT_WAKEUP": {
-      return `[${robotName}]: Robot Wakeup`;
-    }
-    case "ROBOT_SHUTDOWN": {
-      return `[${robotName}]: Robot Shutdown`;
-    }
-    default:
-      return `[UNKNOWN]: Message not found!`;
+  } else {
+    return `[LOG]: ${message.data}`;
   }
 };
 
@@ -664,7 +687,6 @@ const messages = ref<SocketIO[]>([]);
 const socket = ref<Socket>();
 
 onMounted(async () => {
-  if (socket.value) socket.value.connect();
   await refreshLandmarks();
 });
 
@@ -679,4 +701,14 @@ const tableAccordion = [
     slot: "requests",
   },
 ];
+
+watch(
+  auth,
+  async (oldValue, newValue) => {
+    if (newValue.hasCredentials && newValue.appSelected) {
+      await refreshLandmarks();
+    }
+  },
+  { deep: true }
+);
 </script>

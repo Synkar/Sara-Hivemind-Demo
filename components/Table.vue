@@ -115,6 +115,7 @@
             color="red"
             variant="outline"
             square
+            @click="cancelRequest(row)"
             v-if="row.status != 'FINISHED' && row.status != 'CANCELLED'"
           />
         </div>
@@ -289,6 +290,7 @@ const props = defineProps<{
 const pending = ref(false);
 
 const hivemind = useHivemind();
+const toast = useToast();
 
 const rows = computed(() => {
   if (
@@ -305,7 +307,6 @@ const listRequests = async () => {
   if (props.operation) {
     await hivemind.listRequests(props.operation, page.value, pageCount.value);
     if (hivemind.requests) {
-      console.log(hivemind.requests);
       pageTotal.value = hivemind.requests.count;
     }
   }
@@ -332,6 +333,24 @@ const checkCanUnlock = (row: RequestRetrieve) => {
     return false;
   }
 };
+
+const cancelRequest = async (row: RequestRetrieve) => {
+  const request = await hivemind.cancelRequest(row.operation.uuid, row.uuid);
+  if (request) {
+    toast.add({
+      title: "Request Cancelled Successfully!",
+      icon: "i-heroicons-check-circle",
+      color: "green",
+    });
+  } else {
+    toast.add({
+      title: "Something Strange Happened!",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+};
+
 onMounted(() => {
   listRequests();
 });

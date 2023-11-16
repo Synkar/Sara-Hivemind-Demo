@@ -12,6 +12,7 @@ type HivemindState = {
   operationSelected?: string;
   request?: RequestRetrieve;
   requests?: PaginatedModel<RequestRetrieve>;
+  externalId: number;
 };
 
 export const useHivemind = defineStore("hivemind", {
@@ -22,6 +23,7 @@ export const useHivemind = defineStore("hivemind", {
     operationSelected: undefined,
     request: undefined,
     requests: undefined,
+    externalId: 0,
   }),
   actions: {
     setOperationSelected(uuid: string) {
@@ -82,7 +84,7 @@ export const useHivemind = defineStore("hivemind", {
     async createRequest(body: RequestBody) {
       const token = localStorage.getItem("token");
       const request = await $fetch(
-        `/api/hivemind/operations/${body.operation}/request`,
+        `/api/hivemind/operations/${body.operation}/requests/`,
         {
           method: "POST",
           headers: {
@@ -97,7 +99,7 @@ export const useHivemind = defineStore("hivemind", {
     async listRequests(operation: string, page = 1, limit = 10) {
       const token = localStorage.getItem("token");
       const request = await $fetch(
-        `/api/hivemind/operations/${operation}/request`,
+        `/api/hivemind/operations/${operation}/requests`,
         {
           method: "GET",
           headers: {
@@ -111,6 +113,43 @@ export const useHivemind = defineStore("hivemind", {
       );
       this.requests = request;
       return this.requests;
+    },
+    async cancelRequest(operation: string, requestUuid: string) {
+      try {
+        const token = localStorage.getItem("token");
+        await $fetch(
+          `/api/hivemind/operations/${operation}/requests/${requestUuid}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        return true;
+      } catch (e) {
+        console.log(e);
+        return false;
+      }
+    },
+    setExternalId(i: number) {
+      this.externalId = i;
+      localStorage.setItem("externalId", this.externalId.toString());
+    },
+    getExternalId() {
+      const i = localStorage.getItem("externalId");
+      if (i) {
+        this.externalId = parseInt(i);
+        return this.externalId;
+      } else {
+        return this.externalId;
+      }
+    },
+    incrementExternalId() {
+      const i = this.getExternalId();
+      this.externalId = i + 1;
+      this.setExternalId(this.externalId);
+      return this.externalId;
     },
   },
 });

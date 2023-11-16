@@ -26,6 +26,7 @@ export type RequestBody = {
     windowTime: [number, number];
     landmark: string;
   };
+  externalId?: string;
 };
 
 export type OperationTypes = {

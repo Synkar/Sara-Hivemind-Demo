@@ -207,7 +207,6 @@ defineShortcuts({
 
 onMounted(async () => {
   if (auth.logged) {
-    console.log("mounted");
     await auth.listApps();
     if (auth.apps && auth.apps.length > 0) {
       keys.value = auth.apps as unknown as Credentials[];
@@ -228,7 +227,6 @@ watch(
   auth,
   async (newValue, oldValue) => {
     if (!oldValue.logged && newValue.logged) {
-      console.log("watch");
       await auth.listApps();
       keys.value = auth.apps as unknown as Credentials[];
       await auth.getSelectedApp();
