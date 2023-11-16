@@ -132,6 +132,24 @@ export const useHivemind = defineStore("hivemind", {
         return false;
       }
     },
+    async continueRequest(operation: string, requestUuid: string) {
+      try {
+        const token = localStorage.getItem("token");
+        const request = await $fetch(
+          `/api/hivemind/operations/${operation}/requests/${requestUuid}/continue`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        return request;
+      } catch (e) {
+        console.log(e);
+        return false;
+      }
+    },
     setExternalId(i: number) {
       this.externalId = i;
       localStorage.setItem("externalId", this.externalId.toString());

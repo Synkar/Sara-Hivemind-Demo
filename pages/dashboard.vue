@@ -16,6 +16,20 @@
             />
           </UTooltip>
           -->
+          <UTooltip
+            text="Unlock Container"
+            :shortcuts="[metaSymbol, 'U']"
+            v-show="showUnlock"
+          >
+            <UButton
+              icon="i-heroicons-lock-open"
+              size="xl"
+              color="blue"
+              variant="link"
+              square
+              @click="unlockContainer"
+            />
+          </UTooltip>
           <UTooltip text="Clear Logs" :shortcuts="['C']">
             <UButton
               @click="clearLogs"
@@ -483,6 +497,12 @@ defineShortcuts({
       showConfig.value = !showConfig.value;
     },
   },
+  meta_u: {
+    usingInput: false,
+    handler: async () => {
+      await unlockContainer();
+    },
+  },
   0: {
     usingInput: false,
     handler: () => {
@@ -628,9 +648,33 @@ const clearLogs = async () => {
   log.value = "";
 };
 
+const showUnlock = ref(false);
+const requestLocked = ref<string>("");
+
+const unlockContainer = async () => {
+  const request = await hivemind.continueRequest(
+    selectedOperation.value,
+    requestLocked.value
+  );
+  if (request) {
+    toast.add({
+      title: "Container Unlocked",
+      icon: "i-heroicons-check-circle",
+      color: "green",
+    });
+  } else {
+    toast.add({
+      title: "Something Strange Happened!",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+};
+
 const generateMessage = async (message: SocketIO) => {
   if (typeof message.data != "string") {
     const robotName = await robots.getRobotName(message.data.robotId);
+    showUnlock.value = false;
     switch (message.action) {
       case "REQUEST_ASSIGNED": {
         const data = message.data.data as RequestAssignedData;
@@ -650,13 +694,9 @@ const generateMessage = async (message: SocketIO) => {
       }
       case "REQUEST_LOCKED": {
         const data = message.data.data as RequestLockedData;
-        return `[${robotName}]: Request #${data.externalRequestId} Locked <UButton
-            icon="i-heroicons-lock-open"
-            size="2xs"
-            color="blue"
-            variant="outline"
-            square
-          />`;
+        showUnlock.value = true;
+        requestLocked.value = data.requestId;
+        return `[${robotName}]: Request #${data.externalRequestId} Locked`;
       }
       case "REQUEST_CANCELLED": {
         const data = message.data.data as RequestCancelledData;

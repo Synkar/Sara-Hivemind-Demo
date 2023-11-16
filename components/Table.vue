@@ -106,6 +106,7 @@
             color="blue"
             variant="outline"
             square
+            @click="unlockContainer(row)"
             v-if="checkCanUnlock(row)"
           />
 
@@ -339,6 +340,23 @@ const cancelRequest = async (row: RequestRetrieve) => {
   if (request) {
     toast.add({
       title: "Request Cancelled Successfully!",
+      icon: "i-heroicons-check-circle",
+      color: "green",
+    });
+  } else {
+    toast.add({
+      title: "Something Strange Happened!",
+      icon: "i-heroicons-exclamation-circle",
+      color: "red",
+    });
+  }
+};
+
+const unlockContainer = async (row: RequestRetrieve) => {
+  const request = await hivemind.continueRequest(row.operation.uuid, row.uuid);
+  if (request) {
+    toast.add({
+      title: "Container Unlocked",
       icon: "i-heroicons-check-circle",
       color: "green",
     });
