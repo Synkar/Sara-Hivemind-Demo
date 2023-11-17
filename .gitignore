@@ -1,3 +1,5 @@
+charts
+install*.sh
 # Nuxt dev/build outputs
 .output
 .data

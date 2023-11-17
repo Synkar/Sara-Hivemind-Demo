@@ -19,13 +19,15 @@ ADD . /app
 
 # prisma migrate
 RUN apk add openssl1.1-compat
-RUN npx prisma db push
+RUN npx prisma generate
 
 # build the project
 RUN npm run build
 
 # start runner image
 FROM node:18.17.1-alpine3.17 as runner
+RUN apk add openssl1.1-compat
+
 
 WORKDIR /app
 
@@ -33,7 +35,8 @@ COPY --from=builder /app /app
 
 # expose the host and port 3000 to the server
 ENV HOST 0.0.0.0
-EXPOSE 3000
+#EXPOSE 3000
 
 # run the build project with node
-ENTRYPOINT ["node", ".output/server/index.mjs"]
+# ENTRYPOINT ["node", ".output/server/index.mjs"]
+CMD ["npm", "run", "dev"]
