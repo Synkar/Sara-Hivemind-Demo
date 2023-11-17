@@ -2,13 +2,13 @@ version: "3"
 
 services:
   hivemind-demo:
-    container_name: hivemind-demo
+    container_name: hivemind-demo-dev
     build:
       context: .
       dockerfile: Dockerfile.dev
     command: npm run dev
-    volumes:
-      - .:/app
-      - /app/node_modules
+    #    volumes:
+    #      - .:/app
+    #      - /app/node_modules
     ports:
       - "3000:3000"

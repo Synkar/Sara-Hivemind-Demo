@@ -1,9 +1,8 @@
-FROM node:18.17.1-alpine3.17
+FROM node:18.12.1-slim
 
 WORKDIR /app
 
-RUN apk update && apk upgrade
-RUN apk add git
+RUN apt-get update && apt-get install -y openssl libssl-dev
 
 COPY ./package*.json /app/
 
@@ -11,9 +10,10 @@ RUN npm install && npm cache clean --force
 
 ADD . /app
 
-RUN apk add openssl1.1-compat
 RUN npx prisma db push
 
 COPY . .
 
 ENV PATH ./node_modules/.bin/:$PATH
+
+CMD ["npm", "run", "dev"]

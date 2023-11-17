@@ -20,6 +20,7 @@ export default (nuxtServer: NuxtServer) => {
       transports: ["websocket", "polling"],
       query: {
         room,
+        token: session.access_token,
       },
     });
     socketClient.on("connect", () => {
