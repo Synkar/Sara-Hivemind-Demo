@@ -16,20 +16,6 @@
             />
           </UTooltip>
           -->
-          <UTooltip
-            text="Unlock Container"
-            :shortcuts="[metaSymbol, 'U']"
-            v-show="showUnlock"
-          >
-            <UButton
-              icon="i-heroicons-lock-open"
-              size="xl"
-              color="blue"
-              variant="link"
-              square
-              @click="unlockContainer"
-            />
-          </UTooltip>
           <UTooltip text="Clear Logs" :shortcuts="['C']">
             <UButton
               @click="clearLogs"
@@ -450,6 +436,20 @@ const refreshLandmarks = async () => {
             messages.value.push(socketMsg);
             log.value += `<p>${await generateMessage(socketMsg)}</p>`;
             nextTick(() => {
+              if (
+                socketMsg.action == "REQUEST_LOCKED" &&
+                typeof socketMsg.data != "string"
+              ) {
+                const data = socketMsg.data.data as RequestLockedData;
+                const b = document.getElementById(`${data.requestId}`);
+                if (b) {
+                  const operation = selectedOperation.value;
+                  const request = data.requestId;
+                  b.addEventListener("click", async function () {
+                    await unlockContainer(operation, request);
+                  });
+                }
+              }
               const logger = document.getElementById("logger");
               if (logger) logger.scrollTop = logger.scrollHeight;
             });
@@ -496,12 +496,6 @@ defineShortcuts({
     usingInput: false,
     handler: () => {
       showConfig.value = !showConfig.value;
-    },
-  },
-  meta_u: {
-    usingInput: false,
-    handler: async () => {
-      await unlockContainer();
     },
   },
   0: {
@@ -649,14 +643,8 @@ const clearLogs = async () => {
   log.value = "";
 };
 
-const showUnlock = ref(false);
-const requestLocked = ref<string>("");
-
-const unlockContainer = async () => {
-  const request = await hivemind.continueRequest(
-    selectedOperation.value,
-    requestLocked.value
-  );
+const unlockContainer = async (operation: string, requestUuid: string) => {
+  const request = await hivemind.continueRequest(operation, requestUuid);
   if (request) {
     toast.add({
       title: "Container Unlocked",
@@ -675,7 +663,6 @@ const unlockContainer = async () => {
 const generateMessage = async (message: SocketIO) => {
   if (typeof message.data != "string") {
     const robotName = await robots.getRobotName(message.data.robotId);
-    showUnlock.value = false;
     switch (message.action) {
       case "REQUEST_ASSIGNED": {
         const data = message.data.data as RequestAssignedData;
@@ -695,9 +682,8 @@ const generateMessage = async (message: SocketIO) => {
       }
       case "REQUEST_LOCKED": {
         const data = message.data.data as RequestLockedData;
-        showUnlock.value = true;
-        requestLocked.value = data.requestId;
-        return `[${robotName}]: Request #${data.externalRequestId} Locked`;
+        const text = `[${robotName}]: Request #${data.externalRequestId} Locked <button title="Unlock Container" id="${data.requestId}" type="button" class="unlock-container-button focus:outline-none focus-visible:outline-0 disabled:cursor-not-allowed disabled:opacity-75 flex-shrink-0 font-medium rounded-md text-base gap-x-2.5 p-2.5 text-blue-500 hover:text-blue-600 disabled:text-blue-500 dark:text-blue-400 dark:hover:text-blue-500 dark:disabled:text-blue-400 underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 inline-flex items-center"><span class="i-heroicons-lock-open flex-shrink-0 h-6 w-6" aria-hidden="true"></span></button>`;
+        return text;
       }
       case "REQUEST_CANCELLED": {
         const data = message.data.data as RequestCancelledData;
