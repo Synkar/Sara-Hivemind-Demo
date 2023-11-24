@@ -41,6 +41,7 @@
       <div class="flex items-start">
         <div class="flex flex-col whitespace-nowrap gap-2 w-40">
           <span class="w-40">Pickup</span>
+          <!--<span v-if="pf && pf.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
             v-for="(p, i) in pickups"
             :text="'Select ' + p.name"
@@ -96,6 +97,7 @@
         </div>
         <div class="flex flex-col whitespace-nowrap gap-2 w-40">
           <span class="text-right w-40">Delivery</span>
+          <!--<span v-if="df && df.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
             v-for="(d, i) in deliveries"
             :text="'Select ' + d.name"
@@ -110,7 +112,8 @@
               :color="selectedDelivery == d.uuid ? 'green' : 'purple'"
               @click="selectDelivery(d.uuid)"
               :label="d.name"
-              ><template #trailing>
+            >
+              <template #trailing>
                 <UBadge
                   color="white"
                   variant="solid"
@@ -305,6 +308,7 @@ import type {
 } from "~/models/Logs";
 import { z } from "zod";
 import { Socket, io } from "socket.io-client";
+import type { LandmarksList } from "~/models/Locality";
 
 definePageMeta({
   middleware: ["auth"],
@@ -314,24 +318,27 @@ const auth = useAuth();
 const hivemind = useHivemind();
 const toast = useToast();
 const robots = useRobots();
-
 const pickups = computed(() => {
   if (
     hivemind.pickups &&
     hivemind.pickups.results &&
     hivemind.pickups.results.length > 0
-  )
+  ) {
     return hivemind.pickups.results;
-  else return [];
+  } else {
+    return [];
+  }
 });
 const deliveries = computed(() => {
   if (
     hivemind.deliveries &&
     hivemind.deliveries.results &&
     hivemind.deliveries.results.length > 0
-  )
+  ) {
     return hivemind.deliveries.results;
-  else return [];
+  } else {
+    return [];
+  }
 });
 
 const landmarksTotal = computed(() => {
@@ -416,16 +423,8 @@ async function onSubmit(event: FormSubmitEvent<ConfigSchema>) {
     hivemind.setOperationSelected(selectedOperation.value);
     await hivemind.retrieveOperation(selectedOperation.value);
     if (hivemind.operation && hivemind.operation.locality) {
-      await hivemind.listDeliveries(
-        hivemind.operation.locality,
-        10,
-        pageDelivery.value
-      );
-      await hivemind.listPickups(
-        hivemind.operation.locality,
-        10,
-        pagePickup.value
-      );
+      await refreshPickups();
+      await refreshDeliveries();
     }
   }
   savingConfig.value = false;
@@ -469,7 +468,7 @@ async function createRequest() {
   }
 }
 
-const refreshPickups = async () => {
+const refreshAll = async () => {
   if (auth.logged) {
     if (!auth.hasCredentials) {
       await auth.getCredentials();
@@ -483,11 +482,8 @@ const refreshPickups = async () => {
         configState.operation = selectedOperation.value;
         await hivemind.retrieveOperation(selectedOperation.value);
         if (hivemind.operation && hivemind.operation.locality) {
-          await hivemind.listPickups(
-            hivemind.operation.locality,
-            10,
-            pagePickup.value
-          );
+          await refreshPickups();
+          await refreshDeliveries();
         }
         loadingLandmarks.value = false;
         if (!socket.value) {
@@ -539,74 +535,24 @@ const refreshPickups = async () => {
     }
   }
 };
+const refreshPickups = async () => {
+  if (hivemind.operation && hivemind.operation.locality) {
+    await hivemind.listPickups(
+      hivemind.operation.locality,
+      10,
+      pagePickup.value,
+      "name"
+    );
+  }
+};
 const refreshDeliveries = async () => {
-  if (auth.logged) {
-    if (!auth.hasCredentials) {
-      await auth.getCredentials();
-    }
-    if (auth.hasCredentials) {
-      await hivemind.listOperations();
-      if (hivemind.operations) operations.value = hivemind.operations;
-      selectedOperation.value = hivemind.getOperationSelected();
-      if (selectedOperation.value) {
-        loadingLandmarks.value = true;
-        configState.operation = selectedOperation.value;
-        await hivemind.retrieveOperation(selectedOperation.value);
-        if (hivemind.operation && hivemind.operation.locality) {
-          await hivemind.listDeliveries(
-            hivemind.operation.locality,
-            10,
-            pageDelivery.value
-          );
-        }
-        loadingLandmarks.value = false;
-        if (!socket.value) {
-          socket.value = io({
-            transports: ["websocket", "polling"],
-            query: {
-              token: auth.accessToken,
-              room: selectedOperation.value,
-            },
-          });
-
-          socket.value.on("message", async (socketMsg: SocketIO) => {
-            messages.value.push(socketMsg);
-            log.value += `<p>${await generateMessage(socketMsg)}</p>`;
-            nextTick(() => {
-              if (
-                socketMsg.action == "REQUEST_LOCKED" &&
-                typeof socketMsg.data != "string"
-              ) {
-                const data = socketMsg.data.data as RequestLockedData;
-                const b = document.getElementById(`${data.requestId}`);
-                if (b) {
-                  const operation = selectedOperation.value;
-                  const request = data.requestId;
-                  b.addEventListener("click", async function () {
-                    await unlockContainer(operation, request);
-                  });
-                }
-              }
-              const logger = document.getElementById("logger");
-              if (logger) logger.scrollTop = logger.scrollHeight;
-            });
-          });
-        }
-      } else {
-        toast.add({
-          icon: "i-heroicons-exclamation-circle",
-          title: "Please select an operation on configuration",
-          color: "yellow",
-        });
-      }
-    } else {
-      toast.add({
-        icon: "i-heroicons-exclamation-circle",
-        title:
-          "You don't have any App Credentials Registered, click on user icon to set one",
-        color: "red",
-      });
-    }
+  if (hivemind.operation && hivemind.operation.locality) {
+    await hivemind.listDeliveries(
+      hivemind.operation.locality,
+      10,
+      pageDelivery.value,
+      "name"
+    );
   }
 };
 
@@ -852,8 +798,7 @@ const messages = ref<SocketIO[]>([]);
 const socket = ref<Socket>();
 
 onMounted(async () => {
-  await refreshPickups();
-  await refreshDeliveries();
+  await refreshAll();
 });
 
 onUnmounted(() => {
@@ -872,8 +817,7 @@ watch(
   auth,
   async (oldValue, newValue) => {
     if (newValue.hasCredentials && newValue.appSelected) {
-      await refreshPickups();
-      await refreshDeliveries();
+      await refreshAll();
     }
   },
   { deep: true }

@@ -71,7 +71,13 @@ export const useHivemind = defineStore("hivemind", {
       this.operation = request;
       return this.operation;
     },
-    async listPickups(locality: string, limit = 10, page = 1) {
+    async listPickups(
+      locality: string,
+      limit = 10,
+      page = 1,
+      sortBy?: string,
+      sort: "asc" | "desc" = "asc"
+    ) {
       const token = localStorage.getItem("token");
       const request = await $fetch(
         `/api/hivemind/localities/${locality}/landmarks`,
@@ -83,13 +89,21 @@ export const useHivemind = defineStore("hivemind", {
           query: {
             limit,
             page,
+            sortBy,
+            sort,
           },
         }
       );
       this.pickups = request;
       return this.pickups;
     },
-    async listDeliveries(locality: string, limit = 10, page = 1) {
+    async listDeliveries(
+      locality: string,
+      limit = 10,
+      page = 1,
+      sortBy?: string,
+      sort: "asc" | "desc" = "asc"
+    ) {
       const token = localStorage.getItem("token");
       const request = await $fetch(
         `/api/hivemind/localities/${locality}/landmarks`,
@@ -101,6 +115,8 @@ export const useHivemind = defineStore("hivemind", {
           query: {
             limit,
             page,
+            sortBy,
+            sort,
           },
         }
       );
