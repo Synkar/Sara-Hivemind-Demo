@@ -48,50 +48,34 @@ export const useHivemind = defineStore("hivemind", {
       return "";
     },
     async listOperations() {
-      const token = localStorage.getItem("token");
       const request = await $fetch("/api/hivemind/operations", {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
       this.operations = request.results;
       return this.operations;
     },
     async retrieveOperation(uuid: string) {
-      const token = localStorage.getItem("token");
       const request = await $fetch(`/api/hivemind/operations/${uuid}`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
       this.operation = request;
       return this.operation;
     },
     async listLandmarks(locality: string) {
-      const token = localStorage.getItem("token");
       const request = await $fetch(
         `/api/hivemind/localities/${locality}/landmarks`,
         {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
       this.landmarks = request.results;
       return this.landmarks;
     },
     async createRequest(body: RequestBody) {
-      const token = localStorage.getItem("token");
       const request = await $fetch(
         `/api/hivemind/operations/${body.operation}/requests/`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           body,
         }
       );
@@ -99,14 +83,10 @@ export const useHivemind = defineStore("hivemind", {
       return this.request;
     },
     async listRequests(operation: string, page = 1, limit = 10) {
-      const token = localStorage.getItem("token");
       const request = await $fetch(
         `/api/hivemind/operations/${operation}/requests`,
         {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           query: {
             page,
             limit,
@@ -118,14 +98,10 @@ export const useHivemind = defineStore("hivemind", {
     },
     async cancelRequest(operation: string, requestUuid: string) {
       try {
-        const token = localStorage.getItem("token");
         await $fetch(
           `/api/hivemind/operations/${operation}/requests/${requestUuid}`,
           {
             method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           }
         );
         return true;
@@ -136,14 +112,10 @@ export const useHivemind = defineStore("hivemind", {
     },
     async continueRequest(operation: string, requestUuid: string) {
       try {
-        const token = localStorage.getItem("token");
         const request = await $fetch(
           `/api/hivemind/operations/${operation}/requests/${requestUuid}/continue`,
           {
             method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           }
         );
         return request;
@@ -154,12 +126,8 @@ export const useHivemind = defineStore("hivemind", {
     },
     async listRoutes(robot: string) {
       try {
-        const token = localStorage.getItem("token");
         const request = await $fetch(`/api/hivemind/commands/routes/${robot}`, {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         });
         this.routes = request;
         return request;

@@ -427,7 +427,6 @@ const refreshLandmarks = async () => {
           socket.value = io({
             transports: ["websocket", "polling"],
             query: {
-              token: auth.accessToken,
               room: selectedOperation.value,
             },
           });

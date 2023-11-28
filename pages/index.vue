@@ -71,10 +71,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       method: "POST",
       body: JSON.stringify(event.data),
     });
-    if (request && request.token) {
-      localStorage.setItem("token", request.token);
+    if (request) {
       const auth = useAuth();
-      auth.login(request.token);
+      auth.login();
       router.push("/dashboard");
     }
   } catch (e) {
@@ -97,11 +96,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 }
 
 onMounted(() => {
-  if (auth.logged) {
-    router.push("/dashboard");
-  } else {
-    const trylogin = auth.tryLogin();
-    if (trylogin) {
+  if (!auth.logged) {
+    const logged = useCookie("logged");
+    const value = Boolean(logged.value);
+    if (value) {
+      useAuth().login();
       router.push("/dashboard");
     }
   }

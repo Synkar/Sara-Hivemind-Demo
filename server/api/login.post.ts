@@ -1,6 +1,7 @@
 import { compareText } from "../utils/bcrypt";
 import { PrismaClient } from "@prisma/client";
 import nJwt from "njwt";
+import { addRefreshTokenCookie, addTokenCookie } from "../utils/authToken";
 const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
@@ -43,6 +44,15 @@ export default defineEventHandler(async (event) => {
     config.JWT_SECRET
   );
   token.setExpiration(new Date().getTime() + 4 * 60 * 60 * 1000);
+  const refreshToken = nJwt.create(
+    {
+      sub: user.id,
+    },
+    config.JWT_SECRET
+  );
+  refreshToken.setExpiration(new Date().getTime() + 24 * 60 * 60 * 1000);
+  addTokenCookie(event, token.compact());
+  addRefreshTokenCookie(event, refreshToken.compact());
   return {
     user: {
       ...user,
@@ -50,6 +60,5 @@ export default defineEventHandler(async (event) => {
       password: undefined,
       selectedCredential: user.selectedCredential || -1,
     },
-    token: token.compact(),
   };
 });
