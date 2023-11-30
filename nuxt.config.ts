@@ -1,4 +1,4 @@
-import startSocketServer from "./server/sockets";
+import startSocketServer from "./server/io";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -19,7 +19,7 @@ export default defineNuxtConfig({
     global: true,
   },
   ssr: false,
-  modules: ["@nuxt/ui", "@nuxtjs/i18n", "@pinia/nuxt"],
+  modules: ["@nuxt/ui", "@nuxtjs/i18n", "@pinia/nuxt", "nuxt-socket-io"],
   i18n: {
     locales: ["en", "pt"],
     defaultLocale: "en",
@@ -35,14 +35,27 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+  /*
   hooks: {
     listen: (server) => startSocketServer(server),
   },
+  */
   runtimeConfig: {
     JWT_SECRET: process.env.JWT_SECRET || "secret-default",
     public: {
       BASE_URL: "https://sara.synkar.com/",
       AUTH_URL: "https://auth.sara.synkar.com/oauth2/token",
     },
+  },
+  io: {
+    sockets: [
+      {
+        url: "http://localhost:3000",
+        default: true,
+      },
+    ],
+    server: true,
+    info: true,
+    warnings: true,
   },
 });

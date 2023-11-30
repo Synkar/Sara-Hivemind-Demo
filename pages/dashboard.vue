@@ -270,10 +270,13 @@ import type {
 } from "~/models/Logs";
 import { z } from "zod";
 import { Socket, io } from "socket.io-client";
+import type { NuxtSocket } from "nuxt-socket-io/lib/types";
 
 definePageMeta({
   middleware: ["auth"],
 });
+
+const ctx = useNuxtApp();
 
 const auth = useAuth();
 const hivemind = useHivemind();
@@ -424,14 +427,16 @@ const refreshLandmarks = async () => {
         }
         loadingLandmarks.value = false;
         if (!socket.value) {
-          socket.value = io({
-            transports: ["websocket", "polling"],
+          socket.value = ctx.$nuxtSocket({
+            autoConnect: true,
             query: {
               room: selectedOperation.value,
             },
+            transports: ["websocket"],
           });
 
           socket.value.on("message", async (socketMsg: SocketIO) => {
+            console.log(socketMsg);
             messages.value.push(socketMsg);
             log.value += `<p>${await generateMessage(socketMsg)}</p>`;
             nextTick(() => {
@@ -710,7 +715,7 @@ const log = ref<string>("");
 
 const messages = ref<SocketIO[]>([]);
 
-const socket = ref<Socket>();
+const socket = ref<NuxtSocket>();
 
 onMounted(async () => {
   await refreshLandmarks();

@@ -32,6 +32,7 @@
     "axios": "^1.6.0",
     "bcrypt": "^5.1.1",
     "njwt": "^2.0.0",
+    "nuxt-socket-io": "^3.0.13",
     "pinia": "^2.1.7",
     "sara-sdk-ts": "^1.2.8",
     "socket.io": "^4.7.2",
