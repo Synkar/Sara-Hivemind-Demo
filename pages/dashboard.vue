@@ -270,18 +270,17 @@ import type {
 } from "~/models/Logs";
 import { z } from "zod";
 import { Socket, io } from "socket.io-client";
-import type { NuxtSocket } from "nuxt-socket-io/lib/types";
 
 definePageMeta({
   middleware: ["auth"],
 });
 
-const ctx = useNuxtApp();
-
 const auth = useAuth();
 const hivemind = useHivemind();
 const toast = useToast();
 const robots = useRobots();
+
+const config = useRuntimeConfig();
 
 const pickups = ref<LandmarksList[]>([]);
 const deliveries = ref<LandmarksList[]>([]);
@@ -427,7 +426,7 @@ const refreshLandmarks = async () => {
         }
         loadingLandmarks.value = false;
         if (!socket.value) {
-          socket.value = io({
+          socket.value = io(`${config.public.HOST}:${config.public.WS_PORT}`, {
             query: {
               room: selectedOperation.value,
             },
@@ -435,7 +434,6 @@ const refreshLandmarks = async () => {
           });
 
           socket.value.on("message", async (socketMsg: SocketIO) => {
-            console.log(socketMsg);
             messages.value.push(socketMsg);
             log.value += `<p>${await generateMessage(socketMsg)}</p>`;
             nextTick(() => {
