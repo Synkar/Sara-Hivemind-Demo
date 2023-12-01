@@ -427,8 +427,7 @@ const refreshLandmarks = async () => {
         }
         loadingLandmarks.value = false;
         if (!socket.value) {
-          socket.value = ctx.$nuxtSocket({
-            autoConnect: true,
+          socket.value = io({
             query: {
               room: selectedOperation.value,
             },
@@ -715,7 +714,7 @@ const log = ref<string>("");
 
 const messages = ref<SocketIO[]>([]);
 
-const socket = ref<NuxtSocket>();
+const socket = ref<Socket>();
 
 onMounted(async () => {
   await refreshLandmarks();

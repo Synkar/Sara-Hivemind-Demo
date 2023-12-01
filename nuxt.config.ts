@@ -19,7 +19,7 @@ export default defineNuxtConfig({
     global: true,
   },
   ssr: false,
-  modules: ["@nuxt/ui", "@nuxtjs/i18n", "@pinia/nuxt", "nuxt-socket-io"],
+  modules: ["@nuxt/ui", "@nuxtjs/i18n", "@pinia/nuxt", "~/modules/ws"],
   i18n: {
     locales: ["en", "pt"],
     defaultLocale: "en",
@@ -46,16 +46,5 @@ export default defineNuxtConfig({
       BASE_URL: "https://sara.synkar.com/",
       AUTH_URL: "https://auth.sara.synkar.com/oauth2/token",
     },
-  },
-  io: {
-    sockets: [
-      {
-        url: "http://localhost:3000",
-        default: true,
-      },
-    ],
-    server: true,
-    info: true,
-    warnings: true,
   },
 });
