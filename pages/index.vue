@@ -97,7 +97,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 onMounted(() => {
   if (!auth.logged) {
-    const logged = useCookie("logged");
+    const logged = useCookie("isLogged");
     const value = Boolean(logged.value);
     if (value) {
       useAuth().login();

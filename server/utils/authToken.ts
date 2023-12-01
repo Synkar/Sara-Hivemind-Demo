@@ -78,7 +78,7 @@ export function removeCookie(event: H3Event<EventHandlerRequest>) {
     path: "/",
     sameSite: "strict",
   });
-  setCookie(event, "logged", "false", {
+  setCookie(event, "isLogged", "false", {
     httpOnly: false,
     secure: false, // TODO: Change to true when in fix https on production
     path: "/",
@@ -96,7 +96,7 @@ export function addTokenCookie(
     path: "/",
     sameSite: "strict",
   });
-  setCookie(event, "logged", "true", {
+  setCookie(event, "isLogged", "true", {
     httpOnly: false,
     secure: false, // TODO: Change to true when in fix https on production
     path: "/",
