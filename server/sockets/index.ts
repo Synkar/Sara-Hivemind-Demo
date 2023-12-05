@@ -8,8 +8,19 @@ import { Sara } from "sara-sdk-ts";
 export default (nuxtServer: NuxtServer) => {
   const ioServer = new Server(nuxtServer);
   ioServer.on("connection", async (socket: Socket) => {
-    const { token, room } = socket.handshake.query;
-    const decodedToken = await decodeToken(token as string);
+    const { room } = socket.handshake.query;
+    const cookies = socket.handshake.headers.cookie?.split(";");
+    const token = cookies
+      ?.find((cookie) => cookie.includes("token"))
+      ?.split("=")[1];
+    if (!token)
+      return socket.emit("message", {
+        action: "ERROR",
+        data: "Invalid Token!",
+        issuer: socket.id,
+        service: "hivemind",
+      });
+    const decodedToken = await decodeToken(token);
     const credentials = await getCredentials(decodedToken);
     const session = await Sara.auth(credentials.appId, credentials.appSecret);
     const socketClient = io("https://sara.synkar.com", {

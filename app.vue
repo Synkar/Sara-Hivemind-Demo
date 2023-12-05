@@ -23,6 +23,20 @@
           <UTooltip text="Toggle Color Mode" :shortcuts="[metaSymbol, 'K']">
             <ColorMode></ColorMode>
           </UTooltip>
+          <UTooltip
+            v-if="auth.logged"
+            text="Logout"
+            :shortcuts="[metaSymbol, 'L']"
+          >
+            <UButton
+              @click="logoutUser"
+              icon="i-heroicons-arrow-left-on-rectangle"
+              size="xl"
+              square
+              variant="link"
+              color="gray"
+            />
+          </UTooltip>
         </div>
       </div>
     </UCard>
@@ -121,7 +135,6 @@
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui/dist/runtime/types";
 import type { Credentials } from "@prisma/client";
-import type { H3Error } from "h3";
 
 const auth = useAuth();
 const toast = useToast();
@@ -203,7 +216,28 @@ defineShortcuts({
       toggleUserConfig();
     },
   },
+  meta_l: {
+    usingInput: false,
+    handler: () => {
+      logoutUser();
+    },
+  },
 });
+
+const logoutUser = async () => {
+  const res = await $fetch("/api/logout", {
+    method: "POST",
+  });
+  if (res) {
+    toast.add({
+      title: "Logged Out Successfully!",
+      icon: "i-heroicons-check-circle",
+      color: "green",
+    });
+    auth.logout();
+    router.push("/");
+  }
+};
 
 onMounted(async () => {
   if (auth.logged) {

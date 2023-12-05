@@ -12,7 +12,6 @@ type User = Partial<{
 }>;
 
 type AuthState = {
-  token: string;
   logged: boolean;
   user?: User;
   hasCredentials: boolean;
@@ -35,7 +34,6 @@ type CreateAppBody = {
 
 export const useAuth = defineStore("auth", {
   state: (): AuthState => ({
-    token: "",
     logged: false,
     user: undefined,
     hasCredentials: false,
@@ -43,46 +41,13 @@ export const useAuth = defineStore("auth", {
     apps: undefined,
     app: undefined,
   }),
-  getters: {
-    accessToken: (state) => state.token,
-  },
   actions: {
-    login(token: string) {
-      this.token = token;
+    login() {
       this.logged = true;
     },
     logout() {
-      this.token = "";
       this.logged = false;
       this.user = undefined;
-    },
-    tryLogin() {
-      if (process.client) {
-        const token = localStorage.getItem("token");
-        if (token) {
-          const base64Url = token.split(".")[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const jsonPayload = decodeURIComponent(
-            window
-              .atob(base64)
-              .split("")
-              .map(function (c) {
-                return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-              })
-              .join("")
-          );
-
-          const decoded = JSON.parse(jsonPayload);
-          if (Date.now() >= decoded.exp * 1000) {
-            localStorage.removeItem("token");
-            this.logout();
-            return false;
-          }
-          this.login(token);
-          return true;
-        }
-      }
-      return false;
     },
     setCredentials(appId: string) {
       this.hasCredentials = true;
@@ -104,9 +69,6 @@ export const useAuth = defineStore("auth", {
       try {
         const request = await $fetch("/api/apps", {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
         });
         this.apps = JSON.parse(JSON.stringify(request));
         return this.apps;
@@ -118,9 +80,6 @@ export const useAuth = defineStore("auth", {
       try {
         const request = await $fetch("/api/apps", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
           body,
         });
         this.app = request;
@@ -133,9 +92,6 @@ export const useAuth = defineStore("auth", {
       try {
         const request = await $fetch(`/api/apps/${appId}`, {
           method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
         });
         return request;
       } catch (e) {
@@ -146,9 +102,6 @@ export const useAuth = defineStore("auth", {
       try {
         await $fetch("/api/apps/set", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
           body: {
             appId: selectedApp,
           },
@@ -163,11 +116,19 @@ export const useAuth = defineStore("auth", {
       try {
         const request = await $fetch("/api/apps/selected", {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
         });
         this.setCredentials(request.appId);
+        return request;
+      } catch (e) {
+        throw e;
+      }
+    },
+    async getMe() {
+      try {
+        const request = await $fetch("/api/me", {
+          method: "GET",
+        });
+        this.user = request.user;
         return request;
       } catch (e) {
         throw e;
