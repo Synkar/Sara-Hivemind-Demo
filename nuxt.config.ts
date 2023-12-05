@@ -33,6 +33,20 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+  $development: {
+    runtimeConfig: {
+      public: {
+        IS_SECURE: false,
+      },
+    },
+  },
+  $production: {
+    runtimeConfig: {
+      public: {
+        IS_SECURE: true,
+      },
+    },
+  },
   runtimeConfig: {
     JWT_SECRET: process.env.JWT_SECRET || "secret-default",
     public: {

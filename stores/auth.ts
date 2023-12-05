@@ -123,5 +123,16 @@ export const useAuth = defineStore("auth", {
         throw e;
       }
     },
+    async getMe() {
+      try {
+        const request = await $fetch("/api/me", {
+          method: "GET",
+        });
+        this.user = request.user;
+        return request;
+      } catch (e) {
+        throw e;
+      }
+    },
   },
 });
