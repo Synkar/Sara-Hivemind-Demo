@@ -308,7 +308,6 @@ import type {
 } from "~/models/Logs";
 import { z } from "zod";
 import { Socket, io } from "socket.io-client";
-import type { LandmarksList } from "~/models/Locality";
 
 definePageMeta({
   middleware: ["auth"],
@@ -420,13 +419,18 @@ const pageDelivery = ref(1);
 
 async function onSubmit(event: FormSubmitEvent<ConfigSchema>) {
   savingConfig.value = true;
-  if (event.data.operation) {
+  if (event.data.operation && event.data.operation != selectedOperation.value) {
     selectedOperation.value = event.data.operation;
     hivemind.setOperationSelected(selectedOperation.value);
     await hivemind.retrieveOperation(selectedOperation.value);
     if (hivemind.operation && hivemind.operation.locality) {
       await refreshPickups();
       await refreshDeliveries();
+    }
+    if (socket.value) {
+      socket.value.close();
+      socket.value = undefined;
+      connectSocket();
     }
   }
   savingConfig.value = false;
@@ -477,8 +481,23 @@ const refreshAll = async () => {
     }
     if (auth.hasCredentials) {
       await hivemind.listOperations();
-      if (hivemind.operations) operations.value = hivemind.operations;
       selectedOperation.value = hivemind.getOperationSelected();
+      if (hivemind.operations) {
+        operations.value = hivemind.operations;
+        const index = operations.value.findIndex(
+          (o) => o.uuid === selectedOperation.value
+        );
+        if (index < 0) {
+          selectedOperation.value = "";
+          hivemind.pickups = undefined;
+          hivemind.deliveries = undefined;
+          if (socket.value) {
+            socket.value.close();
+            socket.value = undefined;
+            clearLogs();
+          }
+        }
+      }
       if (selectedOperation.value) {
         loadingLandmarks.value = true;
         configState.operation = selectedOperation.value;
@@ -489,35 +508,7 @@ const refreshAll = async () => {
         }
         loadingLandmarks.value = false;
         if (!socket.value) {
-          socket.value = io(`${config.public.HOST}:${config.public.WS_PORT}`, {
-            query: {
-              room: selectedOperation.value,
-            },
-            transports: ["websocket"],
-          });
-
-          socket.value.on("message", async (socketMsg: SocketIO) => {
-            messages.value.push(socketMsg);
-            log.value += `<p>${await generateMessage(socketMsg)}</p>`;
-            nextTick(() => {
-              if (
-                socketMsg.action == "REQUEST_LOCKED" &&
-                typeof socketMsg.data != "string"
-              ) {
-                const data = socketMsg.data.data as RequestLockedData;
-                const b = document.getElementById(`${data.requestId}`);
-                if (b) {
-                  const operation = selectedOperation.value;
-                  const request = data.requestId;
-                  b.addEventListener("click", async function () {
-                    await unlockContainer(operation, request);
-                  });
-                }
-              }
-              const logger = document.getElementById("logger");
-              if (logger) logger.scrollTop = logger.scrollHeight;
-            });
-          });
+          connectSocket();
         }
       } else {
         toast.add({
@@ -535,6 +526,42 @@ const refreshAll = async () => {
       });
     }
   }
+};
+
+const connectSocket = () => {
+  socket.value = io(`${config.public.HOST}:${config.public.WS_PORT}`, {
+    query: {
+      room: selectedOperation.value,
+    },
+    transports: ["websocket"],
+  });
+
+  socket.value.on("connect", () => {
+    log.value += `<p>[LOG]: Connecting to Operation: ${hivemind.operation?.name}</p>`;
+  });
+
+  socket.value.on("message", async (socketMsg: SocketIO) => {
+    messages.value.push(socketMsg);
+    log.value += `<p>${await generateMessage(socketMsg)}</p>`;
+    nextTick(() => {
+      if (
+        socketMsg.action == "REQUEST_LOCKED" &&
+        typeof socketMsg.data != "string"
+      ) {
+        const data = socketMsg.data.data as RequestLockedData;
+        const b = document.getElementById(`${data.requestId}`);
+        if (b) {
+          const operation = selectedOperation.value;
+          const request = data.requestId;
+          b.addEventListener("click", async function () {
+            await unlockContainer(operation, request);
+          });
+        }
+      }
+      const logger = document.getElementById("logger");
+      if (logger) logger.scrollTop = logger.scrollHeight;
+    });
+  });
 };
 const refreshPickups = async () => {
   if (hivemind.operation && hivemind.operation.locality) {
