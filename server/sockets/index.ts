@@ -1,5 +1,5 @@
 import { Server as NuxtServer } from "node:http";
-import { Socket, Server } from "socket.io";
+import { Server } from "socket.io";
 import { io } from "socket.io-client";
 import { decodeToken } from "../utils/authToken";
 import { getCredentials } from "../utils/getCredentials";
@@ -7,7 +7,7 @@ import { Sara } from "sara-sdk-ts";
 
 export default (nuxtServer: NuxtServer) => {
   const ioServer = new Server(nuxtServer);
-  ioServer.on("connection", async (socket: Socket) => {
+  ioServer.on("connection", async (socket) => {
     const { room } = socket.handshake.query;
     const cookies = socket.handshake.headers.cookie?.split(";");
     const token = cookies

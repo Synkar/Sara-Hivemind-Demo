@@ -1,5 +1,3 @@
-import startSocketServer from "./server/sockets";
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
@@ -35,9 +33,6 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-  hooks: {
-    listen: (server) => startSocketServer(server),
-  },
   $development: {
     runtimeConfig: {
       public: {
@@ -57,6 +52,14 @@ export default defineNuxtConfig({
     public: {
       BASE_URL: "https://sara.synkar.com/",
       AUTH_URL: "https://auth.sara.synkar.com/oauth2/token",
+      HOST: process.env.HOST || "http://localhost",
+      WS_PORT: process.env.WS_PORT || "3001",
     },
   },
+  serverHandlers: [
+    {
+      route: "/ws",
+      handler: "~/socket/ws",
+    },
+  ],
 });

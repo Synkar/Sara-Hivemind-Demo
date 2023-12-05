@@ -341,6 +341,8 @@ const deliveries = computed(() => {
   }
 });
 
+const config = useRuntimeConfig();
+
 const landmarksTotal = computed(() => {
   if (hivemind.pickups && hivemind.deliveries) {
     return hivemind.pickups.count;
@@ -487,11 +489,11 @@ const refreshAll = async () => {
         }
         loadingLandmarks.value = false;
         if (!socket.value) {
-          socket.value = io({
-            transports: ["websocket", "polling"],
+          socket.value = io(`${config.public.HOST}:${config.public.WS_PORT}`, {
             query: {
               room: selectedOperation.value,
             },
+            transports: ["websocket"],
           });
 
           socket.value.on("message", async (socketMsg: SocketIO) => {
