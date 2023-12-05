@@ -1,11 +1,13 @@
-export default defineNuxtRouteMiddleware((to, from) => {
-  if (!useAuth().logged) {
-    const logged = useCookie("isLogged");
-    const value = Boolean(logged.value);
-    if (value) {
+export default defineNuxtRouteMiddleware(async (to, from) => {
+  const auth = useAuth();
+
+  if (!auth.logged) {
+    try {
+      await auth.getMe();
       useAuth().login();
       return;
+    } catch (e) {
+      return navigateTo("/login");
     }
-    return navigateTo("/");
   }
 });

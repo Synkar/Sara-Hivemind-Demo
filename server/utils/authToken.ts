@@ -72,17 +72,12 @@ export async function authToken(event: H3Event<EventHandlerRequest>) {
 }
 
 export function removeCookie(event: H3Event<EventHandlerRequest>) {
+  const config = useRuntimeConfig();
   setCookie(event, "token", "", {
     httpOnly: true,
-    secure: false, // TODO: Change to true when in fix https on production
+    secure: config.public.IS_SECURE,
     path: "/",
-    sameSite: "strict",
-  });
-  setCookie(event, "isLogged", "false", {
-    httpOnly: false,
-    secure: false, // TODO: Change to true when in fix https on production
-    path: "/",
-    sameSite: "strict",
+    sameSite: "lax",
   });
 }
 
@@ -90,17 +85,13 @@ export function addTokenCookie(
   event: H3Event<EventHandlerRequest>,
   token: string
 ) {
+  const config = useRuntimeConfig();
   setCookie(event, "token", token, {
     httpOnly: true,
-    secure: false, // TODO: Change to true when in fix https on production
+    secure: config.public.IS_SECURE,
     path: "/",
-    sameSite: "strict",
-  });
-  setCookie(event, "isLogged", "true", {
-    httpOnly: false,
-    secure: false, // TODO: Change to true when in fix https on production
-    path: "/",
-    sameSite: "strict",
+    sameSite: "lax",
+    expires: new Date(new Date().getTime() + 4 * 60 * 60 * 1000),
   });
 }
 
@@ -108,11 +99,13 @@ export function addRefreshTokenCookie(
   event: H3Event<EventHandlerRequest>,
   token: string
 ) {
+  const config = useRuntimeConfig();
   setCookie(event, "refreshToken", token, {
     httpOnly: true,
-    secure: false, // TODO: Change to true when in fix https on production
+    secure: config.public.IS_SECURE,
     path: "/",
-    sameSite: "strict",
+    sameSite: "lax",
+    expires: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
   });
 }
 

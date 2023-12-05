@@ -49,6 +49,20 @@ import { z } from "zod";
 import type { FormSubmitEvent } from "#ui/types";
 import type { H3Error } from "h3";
 
+definePageMeta({
+  middleware: async function (_route) {
+    if (!useAuth().logged) {
+      try {
+        await useAuth().getMe();
+        useAuth().login();
+        return navigateTo("/dashboard");
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  },
+});
+
 const router = useRouter();
 const toast = useToast();
 const auth = useAuth();
@@ -94,15 +108,4 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     }
   }
 }
-
-onMounted(() => {
-  if (!auth.logged) {
-    const logged = useCookie("isLogged");
-    const value = Boolean(logged.value);
-    if (value) {
-      useAuth().login();
-      router.push("/dashboard");
-    }
-  }
-});
 </script>
