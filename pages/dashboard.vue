@@ -41,6 +41,7 @@
       <div class="flex items-start">
         <div class="flex flex-col whitespace-nowrap gap-2 w-40">
           <span class="w-40">Pickup</span>
+          <!--<span v-if="pf && pf.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
             v-for="(p, i) in pickups"
             :text="'Select ' + p.name"
@@ -63,6 +64,24 @@
               </template>
             </UButton>
           </UTooltip>
+          <UPagination
+            v-if="landmarksTotal > 10"
+            v-model="pagePickup"
+            :total="landmarksTotal"
+            :max="5"
+            size="xs"
+            :ui="{
+              wrapper: 'flex items-center gap-1',
+              rounded: '!rounded-full min-w-[28px] justify-center',
+              default: {
+                activeButton: {
+                  variant: 'outline',
+                },
+              },
+            }"
+            :prevButton="null"
+            :nextButton="null"
+          />
         </div>
         <div class="flex flex-col text-center w-full px-4 justify-center gap-2">
           <div>Logs</div>
@@ -72,12 +91,13 @@
             ><div
               id="logger"
               v-html="log"
-              class="h-[418px] overflow-y-scroll p-1 m-1"
+              class="h-[455px] overflow-y-scroll p-1 m-1"
             ></div
           ></UCard>
         </div>
         <div class="flex flex-col whitespace-nowrap gap-2 w-40">
           <span class="text-right w-40">Delivery</span>
+          <!--<span v-if="df && df.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
             v-for="(d, i) in deliveries"
             :text="'Select ' + d.name"
@@ -92,7 +112,8 @@
               :color="selectedDelivery == d.uuid ? 'green' : 'purple'"
               @click="selectDelivery(d.uuid)"
               :label="d.name"
-              ><template #trailing>
+            >
+              <template #trailing>
                 <UBadge
                   color="white"
                   variant="solid"
@@ -100,6 +121,24 @@
                 ></UBadge> </template
             ></UButton>
           </UTooltip>
+          <UPagination
+            v-if="landmarksTotal > 10"
+            v-model="pageDelivery"
+            :total="landmarksTotal"
+            :max="5"
+            size="xs"
+            :ui="{
+              wrapper: 'flex items-center gap-1',
+              rounded: '!rounded-full min-w-[28px] justify-center',
+              default: {
+                activeButton: {
+                  variant: 'outline',
+                },
+              },
+            }"
+            :prevButton="null"
+            :nextButton="null"
+          />
         </div>
       </div>
       <div class="flex">
@@ -256,7 +295,6 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "#ui/types";
 import type { OperationList, RequestBody } from "../models/Operation";
-import type { LandmarksList } from "~/models/Locality";
 import type {
   DataUnion,
   LogActions,
@@ -270,6 +308,7 @@ import type {
 } from "~/models/Logs";
 import { z } from "zod";
 import { Socket, io } from "socket.io-client";
+import type { LandmarksList } from "~/models/Locality";
 
 definePageMeta({
   middleware: ["auth"],
@@ -279,9 +318,36 @@ const auth = useAuth();
 const hivemind = useHivemind();
 const toast = useToast();
 const robots = useRobots();
+const pickups = computed(() => {
+  if (
+    hivemind.pickups &&
+    hivemind.pickups.results &&
+    hivemind.pickups.results.length > 0
+  ) {
+    return hivemind.pickups.results;
+  } else {
+    return [];
+  }
+});
+const deliveries = computed(() => {
+  if (
+    hivemind.deliveries &&
+    hivemind.deliveries.results &&
+    hivemind.deliveries.results.length > 0
+  ) {
+    return hivemind.deliveries.results;
+  } else {
+    return [];
+  }
+});
 
-const pickups = ref<LandmarksList[]>([]);
-const deliveries = ref<LandmarksList[]>([]);
+const landmarksTotal = computed(() => {
+  if (hivemind.pickups && hivemind.deliveries) {
+    return hivemind.pickups.count;
+  } else {
+    return 0;
+  }
+});
 
 const savingConfig = ref(false);
 const loadingLandmarks = ref(false);
@@ -347,6 +413,9 @@ const configState = reactive<ConfigSchema>({
   },
 });
 
+const pagePickup = ref(1);
+const pageDelivery = ref(1);
+
 async function onSubmit(event: FormSubmitEvent<ConfigSchema>) {
   savingConfig.value = true;
   if (event.data.operation) {
@@ -354,11 +423,8 @@ async function onSubmit(event: FormSubmitEvent<ConfigSchema>) {
     hivemind.setOperationSelected(selectedOperation.value);
     await hivemind.retrieveOperation(selectedOperation.value);
     if (hivemind.operation && hivemind.operation.locality) {
-      await hivemind.listLandmarks(hivemind.operation.locality);
-      if (hivemind.landmarks) {
-        pickups.value = hivemind.landmarks;
-        deliveries.value = hivemind.landmarks;
-      }
+      await refreshPickups();
+      await refreshDeliveries();
     }
   }
   savingConfig.value = false;
@@ -402,7 +468,7 @@ async function createRequest() {
   }
 }
 
-const refreshLandmarks = async () => {
+const refreshAll = async () => {
   if (auth.logged) {
     if (!auth.hasCredentials) {
       await auth.getCredentials();
@@ -416,11 +482,8 @@ const refreshLandmarks = async () => {
         configState.operation = selectedOperation.value;
         await hivemind.retrieveOperation(selectedOperation.value);
         if (hivemind.operation && hivemind.operation.locality) {
-          await hivemind.listLandmarks(hivemind.operation.locality);
-          if (hivemind.landmarks) {
-            pickups.value = hivemind.landmarks;
-            deliveries.value = hivemind.landmarks;
-          }
+          await refreshPickups();
+          await refreshDeliveries();
         }
         loadingLandmarks.value = false;
         if (!socket.value) {
@@ -472,15 +535,35 @@ const refreshLandmarks = async () => {
     }
   }
 };
+const refreshPickups = async () => {
+  if (hivemind.operation && hivemind.operation.locality) {
+    await hivemind.listPickups(
+      hivemind.operation.locality,
+      10,
+      pagePickup.value,
+      "name"
+    );
+  }
+};
+const refreshDeliveries = async () => {
+  if (hivemind.operation && hivemind.operation.locality) {
+    await hivemind.listDeliveries(
+      hivemind.operation.locality,
+      10,
+      pageDelivery.value,
+      "name"
+    );
+  }
+};
 
 const setPickup = (index: number) => {
-  if (pickups.value[index]) {
+  if (pickups.value && pickups.value[index]) {
     selectedPickup.value = pickups.value[index].uuid;
   }
 };
 
 const setDelivery = (index: number) => {
-  if (deliveries.value[index]) {
+  if (deliveries.value && deliveries.value[index]) {
     selectedDelivery.value = deliveries.value[index].uuid;
   }
 };
@@ -489,7 +572,8 @@ defineShortcuts({
   r: {
     usingInput: false,
     handler: async () => {
-      await refreshLandmarks();
+      await refreshPickups();
+      await refreshDeliveries();
     },
   },
   g: {
@@ -714,7 +798,7 @@ const messages = ref<SocketIO[]>([]);
 const socket = ref<Socket>();
 
 onMounted(async () => {
-  await refreshLandmarks();
+  await refreshAll();
 });
 
 onUnmounted(() => {
@@ -733,9 +817,15 @@ watch(
   auth,
   async (oldValue, newValue) => {
     if (newValue.hasCredentials && newValue.appSelected) {
-      await refreshLandmarks();
+      await refreshAll();
     }
   },
   { deep: true }
 );
+watch(pagePickup, (oldValue, newValue) => {
+  refreshPickups();
+});
+watch(pageDelivery, (oldValue, newValue) => {
+  refreshDeliveries();
+});
 </script>

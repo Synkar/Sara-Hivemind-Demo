@@ -8,7 +8,8 @@ import type { PaginatedModel } from "~/models/Paginated";
 type HivemindState = {
   operations?: OperationList[];
   operation?: OperationsRetrieve;
-  landmarks?: LandmarksList[];
+  pickups?: PaginatedModel<LandmarksList>;
+  deliveries?: PaginatedModel<LandmarksList>;
   operationSelected?: string;
   request?: RequestRetrieve;
   requests?: PaginatedModel<RequestRetrieve>;
@@ -20,7 +21,8 @@ export const useHivemind = defineStore("hivemind", {
   state: (): HivemindState => ({
     operations: undefined,
     operation: undefined,
-    landmarks: undefined,
+    pickups: undefined,
+    deliveries: undefined,
     operationSelected: undefined,
     request: undefined,
     requests: undefined,
@@ -69,7 +71,13 @@ export const useHivemind = defineStore("hivemind", {
       this.operation = request;
       return this.operation;
     },
-    async listLandmarks(locality: string) {
+    async listPickups(
+      locality: string,
+      limit = 10,
+      page = 1,
+      sortBy?: string,
+      sort: "asc" | "desc" = "asc"
+    ) {
       const token = localStorage.getItem("token");
       const request = await $fetch(
         `/api/hivemind/localities/${locality}/landmarks`,
@@ -78,10 +86,42 @@ export const useHivemind = defineStore("hivemind", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          query: {
+            limit,
+            page,
+            sortBy,
+            sort,
+          },
         }
       );
-      this.landmarks = request.results;
-      return this.landmarks;
+      this.pickups = request;
+      return this.pickups;
+    },
+    async listDeliveries(
+      locality: string,
+      limit = 10,
+      page = 1,
+      sortBy?: string,
+      sort: "asc" | "desc" = "asc"
+    ) {
+      const token = localStorage.getItem("token");
+      const request = await $fetch(
+        `/api/hivemind/localities/${locality}/landmarks`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          query: {
+            limit,
+            page,
+            sortBy,
+            sort,
+          },
+        }
+      );
+      this.deliveries = request;
+      return this.deliveries;
     },
     async createRequest(body: RequestBody) {
       const token = localStorage.getItem("token");
