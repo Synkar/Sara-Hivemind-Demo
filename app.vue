@@ -12,6 +12,7 @@
             :shortcuts="['U']"
           >
             <UButton
+              id="user-config"
               @click="toggleUserConfig"
               icon="i-heroicons-user"
               size="xl"
@@ -65,7 +66,12 @@
           </div>
         </template>
         <div class="flex flex-col gap-4">
-          <UForm :schema="userKeySchema" :state="keyState" @submit="onSubmit">
+          <UForm
+            :schema="userKeySchema"
+            :state="keyState"
+            @submit="onSubmit"
+            id="user-app"
+          >
             <div class="flex items-end justify-between">
               <UFormGroup label="App Id" name="appId">
                 <UInput
@@ -108,7 +114,7 @@
           </div>
         </div>
         <template #footer>
-          <div class="flex flex-col items-end gap-2">
+          <div class="flex flex-col items-end gap-2" id="save">
             <UFormGroup label="Selected Key" name="selectedKey" class="w-full">
               <USelectMenu
                 v-model="keySelected"
@@ -135,6 +141,9 @@
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui/dist/runtime/types";
 import type { Credentials } from "@prisma/client";
+import type { H3Error } from "h3";
+import { useShepherd } from "vue-shepherd";
+import { offset } from "@floating-ui/vue";
 
 const auth = useAuth();
 const toast = useToast();
@@ -168,6 +177,7 @@ async function onSubmit(event: FormSubmitEvent<UserKeySchema>) {
   keys.value = auth.apps as unknown as Credentials[];
   await auth.getSelectedApp();
   keySelected.value = auth.appSelected;
+  tour.next();
 }
 
 async function setSelectedKey() {
@@ -181,10 +191,15 @@ async function setSelectedKey() {
     }
   }
   showUserConfig.value = false;
+  tour.complete();
 }
 
-const toggleUserConfig = () => {
-  showUserConfig.value = !showUserConfig.value;
+const toggleUserConfig = async () => {
+  await (showUserConfig.value = !showUserConfig.value);
+
+  if (auth.apps && auth.apps.length <= 0) {
+    tour.start();
+  }
 };
 
 const deleteKey = async (appId: string) => {
@@ -239,6 +254,9 @@ const logoutUser = async () => {
   }
 };
 
+const tour = useShepherd({
+  useModalOverlay: true,
+});
 onMounted(async () => {
   if (auth.logged) {
     await auth.listApps();
@@ -255,6 +273,40 @@ onMounted(async () => {
       });
     }
   }
+  tour.addStep({
+    attachTo: { element: "#user-app", on: "top" },
+    text: "Define your App Credentials here. App Credentials can be obtained from your account on SARA console.",
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tour.next,
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tour.addStep({
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    attachTo: { element: "#save", on: "right" },
+    text: "Select and save your App Credentials.",
+    buttons: [
+      {
+        action: tour.back,
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action: tour.next,
+        classes: "shepherd-button-primary",
+        text: "Finish",
+      },
+    ],
+  });
+  //tour.start();
 });
 
 watch(
@@ -271,4 +323,9 @@ watch(
     deep: true,
   }
 );
+watch(showUserConfig, (newValue) => {
+  if (newValue === false) {
+    tour.complete();
+  }
+});
 </script>

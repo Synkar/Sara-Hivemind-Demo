@@ -1,6 +1,9 @@
 import { H3Event, EventHandlerRequest } from "h3";
 import nJwt from "njwt";
 
+/**
+ * function to create auth token
+ */
 export async function authToken(event: H3Event<EventHandlerRequest>) {
   const token = getCookie(event, "token");
   const config = useRuntimeConfig(event);

@@ -2,6 +2,10 @@ import { axiosHandler } from "~/server/utils/axios";
 import { RequestRetrieve } from "~/models/Operation";
 import { PaginatedModel } from "~/models/Paginated";
 
+/**
+ * function to list requests from an operation
+ * returns a paginated list of requests
+ */
 export default defineEventHandler(async (event) => {
   const axios = await axiosHandler(event);
   const operation = getRouterParam(event, "operation");
@@ -27,7 +31,7 @@ export default defineEventHandler(async (event) => {
     console.log(e);
     throw createError({
       statusCode: 400,
-      message: "Error while retrieving operation",
+      message: "Error while listing requests",
     });
   }
 });

@@ -14,6 +14,26 @@
       "links": {
         "register": "Click here to register"
       }
+    },
+    "dashboard":{
+      "tour":{
+        "operationConfig": "Click here to configure your Operation.",
+        "operationSelect":"Select your Operation here. This will define the operationId used in the requests.",
+        "pickupWindow": "Change the Pickup Window here.",
+        "deliveryWindow": "Change the Delivery Window here.",
+        "pickupLandmark": "Select one pickup landmark here.",
+        "deliveryLandmark": "Select one delivery landmark here.",
+        "sendRequest": "Click here to send the request.",
+        "requestUrl": "Request URL",
+        "requestBody": "Request Body",
+        "appCredentials": "Define your App Credentials here. App Credentials can be obtained from your account on SARA console.",
+        "saveApp": "Select and save your App Credentials.",
+        "buttons": {
+          "next": "Next",
+          "back": "Back",
+          "finish": "Finish"
+        }
+      }
     }
   }
 }

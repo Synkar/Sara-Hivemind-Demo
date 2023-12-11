@@ -2,7 +2,20 @@
   <div class="flex flex-col justify-center items-center container mx-auto px-4">
     <div class="flex flex-col gap-4 w-full mt-4">
       <div class="flex justify-between items-center">
-        <h1 class="text-lg text-left">Pickup and Delivery DEMO</h1>
+        <div class="flex">
+          <h1 class="text-lg text-left">Pickup and Delivery DEMO</h1>
+          <UTooltip text="Start tour">
+            <UButton
+              id="tour"
+              @click="startTour"
+              icon="i-heroicons-information-circle"
+              size="sm"
+              square
+              variant="link"
+              color="gray"
+            />
+          </UTooltip>
+        </div>
         <div>
           <!--
           <UTooltip text="Refresh Landmarks" :shortcuts="['R']">
@@ -28,6 +41,7 @@
           </UTooltip>
           <UTooltip text="Open Operation Configuration" :shortcuts="['G']">
             <UButton
+              id="operation-config"
               @click="toggleConfig"
               icon="i-heroicons-cog-6-tooth"
               size="xl"
@@ -39,7 +53,7 @@
         </div>
       </div>
       <div class="flex items-start">
-        <div class="flex flex-col whitespace-nowrap gap-2 w-40">
+        <div class="flex flex-col whitespace-nowrap gap-2 w-40" id="pickups">
           <span class="w-40">Pickup</span>
           <!--<span v-if="pf && pf.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
@@ -79,8 +93,8 @@
                 },
               },
             }"
-            :prevButton="null"
-            :nextButton="null"
+            :prevButton="undefined"
+            :nextButton="undefined"
           />
         </div>
         <div class="flex flex-col text-center w-full px-4 justify-center gap-2">
@@ -95,7 +109,7 @@
             ></div
           ></UCard>
         </div>
-        <div class="flex flex-col whitespace-nowrap gap-2 w-40">
+        <div class="flex flex-col whitespace-nowrap gap-2 w-40" id="deliveries">
           <span class="text-right w-40">Delivery</span>
           <!--<span v-if="df && df.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
@@ -136,12 +150,12 @@
                 },
               },
             }"
-            :prevButton="null"
-            :nextButton="null"
+            :prevButton="undefined"
+            :nextButton="undefined"
           />
         </div>
       </div>
-      <div class="flex">
+      <div class="flex" id="create-request">
         <UButton block color="gray" @click="createRequest" label="Send Request"
           ><template #trailing><UKbd>Space</UKbd></template></UButton
         >
@@ -226,7 +240,7 @@
           @submit="onSubmit"
         >
           <UDivider label="Operation" />
-          <UFormGroup label="Operation" name="operation">
+          <UFormGroup label="Operation" name="operation" id="operationSelect">
             <USelectMenu
               placeholder="Choose the Operation"
               v-model="configState.operation"
@@ -242,38 +256,42 @@
               </template>
             </USelectMenu>
           </UFormGroup>
-          <UDivider label="Pickup Window Configuration" />
-          <UFormGroup label="Pickup Window Upper" name="pickup-window-upper">
-            <UInput
-              placeholder="Pickup Window Upper Time"
-              v-model="configState.pickup.window.upper"
-            ></UInput>
-          </UFormGroup>
-          <UFormGroup label="Pickup Window Lower" name="pickup-window-lower">
-            <UInput
-              placeholder="Pickup Window Lower Time"
-              v-model="configState.pickup.window.lower"
-            ></UInput>
-          </UFormGroup>
-          <UDivider label="Delivery Window Configuration" />
-          <UFormGroup
-            label="Delivery Window Upper"
-            name="delivery-window-upper"
-          >
-            <UInput
-              placeholder="Delivery Window Upper Time"
-              v-model="configState.delivery.window.upper"
-            ></UInput>
-          </UFormGroup>
-          <UFormGroup
-            label="Delivery Window Lower"
-            name="delivery-window-lower"
-          >
-            <UInput
-              placeholder="Delivery Window Lower Time"
-              v-model="configState.delivery.window.lower"
-            ></UInput>
-          </UFormGroup>
+          <div id="pickup-window">
+            <UDivider label="Pickup Window Configuration" />
+            <UFormGroup label="Pickup Window Upper" name="pickup-window-upper">
+              <UInput
+                placeholder="Pickup Window Upper Time"
+                v-model="configState.pickup.window.upper"
+              ></UInput>
+            </UFormGroup>
+            <UFormGroup label="Pickup Window Lower" name="pickup-window-lower">
+              <UInput
+                placeholder="Pickup Window Lower Time"
+                v-model="configState.pickup.window.lower"
+              ></UInput>
+            </UFormGroup>
+          </div>
+          <div id="delivery-window">
+            <UDivider label="Delivery Window Configuration" />
+            <UFormGroup
+              label="Delivery Window Upper"
+              name="delivery-window-upper"
+            >
+              <UInput
+                placeholder="Delivery Window Upper Time"
+                v-model="configState.delivery.window.upper"
+              ></UInput>
+            </UFormGroup>
+            <UFormGroup
+              label="Delivery Window Lower"
+              name="delivery-window-lower"
+            >
+              <UInput
+                placeholder="Delivery Window Lower Time"
+                v-model="configState.delivery.window.lower"
+              ></UInput>
+            </UFormGroup>
+          </div>
           <div class="flex justify-end">
             <UButton type="submit">Save</UButton>
           </div>
@@ -308,6 +326,10 @@ import type {
 } from "~/models/Logs";
 import { z } from "zod";
 import { Socket, io } from "socket.io-client";
+import { useShepherd } from "vue-shepherd";
+import { offset } from "@floating-ui/vue";
+import imageRequest from "~/assets/images/request.png";
+import imageUrl from "~/assets/images/url.png";
 
 definePageMeta({
   middleware: ["auth"],
@@ -386,16 +408,28 @@ const currentOperation = computed(() => {
 const selectedPickup = ref<string>();
 const selectedDelivery = ref<string>();
 
-function selectPickup(uuid: string) {
-  selectedPickup.value = uuid;
+async function selectPickup(uuid: string) {
+  await (selectedPickup.value = uuid);
+  if (tourDash.isActive() && tourDash.getCurrentStep().id === "pickups")
+    tourDash.next();
 }
 
-function selectDelivery(uuid: string) {
-  selectedDelivery.value = uuid;
+async function selectDelivery(uuid: string) {
+  await (selectedDelivery.value = uuid);
+  if (tourDash.isActive() && tourDash.getCurrentStep().id === "deliveries")
+    tourDash.next();
 }
 
-const toggleConfig = () => {
-  showConfig.value = !showConfig.value;
+const toggleConfig = async () => {
+  await (showConfig.value = !showConfig.value);
+  console.log(tourDash.getCurrentStep());
+
+  if (tourDash.isActive() && tourDash.getCurrentStep().id === "config")
+    tourDash.next();
+};
+
+const startTour = () => {
+  tourDash.start();
 };
 
 const configState = reactive<ConfigSchema>({
@@ -435,6 +469,7 @@ async function onSubmit(event: FormSubmitEvent<ConfigSchema>) {
   }
   savingConfig.value = false;
   showConfig.value = false;
+  tourDash.next();
 }
 
 async function createRequest() {
@@ -825,8 +860,179 @@ const messages = ref<SocketIO[]>([]);
 
 const socket = ref<Socket>();
 
+const { t } = useI18n();
+
+const tourDash = useShepherd({
+  useModalOverlay: true,
+  defaultStepOptions: {
+    cancelIcon: {
+      enabled: true,
+    },
+  },
+});
 onMounted(async () => {
   await refreshAll();
+  tourDash.addStep({
+    id: "config",
+    attachTo: { element: "#operation-config", on: "top" },
+    text: t("pages.dashboard.tour.operationConfig"),
+    buttons: [
+      {
+        async action() {
+          await (showConfig.value = true);
+          tourDash.next();
+          return;
+        },
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+  });
+  tourDash.addStep({
+    attachTo: { element: "#operationSelect", on: "top" },
+    text: t("pages.dashboard.tour.operationSelect"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        async action() {
+          await (showConfig.value = false);
+          tourDash.back();
+          return;
+        },
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tourDash.addStep({
+    attachTo: { element: "#pickup-window", on: "top" },
+    text: t("pages.dashboard.tour.pickupWindow"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tourDash.addStep({
+    attachTo: { element: "#delivery-window", on: "top" },
+    text: t("pages.dashboard.tour.deliveryWindow"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        async action() {
+          await (showConfig.value = false);
+          tourDash.next();
+          return;
+        },
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tourDash.addStep({
+    id: "pickups",
+    attachTo: { element: "#pickups", on: "top" },
+    text: t("pages.dashboard.tour.pickupLandmark"),
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tourDash.addStep({
+    id: "deliveries",
+    attachTo: { element: "#deliveries", on: "top" },
+    text: t("pages.dashboard.tour.deliveryLandmark"),
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tourDash.addStep({
+    id: "request",
+    attachTo: { element: "#create-request", on: "top" },
+    text: `<div class="tour-text-container">
+                    <div class="tour-text">
+                      <p>${t("pages.dashboard.tour.sendRequest")}</p>
+                    </div>
+                    <div class="image-container">
+                      <p>${t("pages.dashboard.tour.requestUrl")}:</p>
+                      <img 
+                          src=${imageUrl}
+                          class="imageStyle"
+                          frameBorder="0" 
+                          allowFullScreen
+                      >
+                      </img>
+                      <p>${t("pages.dashboard.tour.requestBody")}:</p>
+                      <img 
+                          src=${imageRequest}
+                          class="imageStyle"
+                          frameBorder="0" 
+                          allowFullScreen
+                      >
+                      </img>
+                    </div>
+                </div>`,
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: "Finish",
+      },
+    ],
+  });
+  tourDash.start();
 });
 
 onUnmounted(() => {
@@ -855,5 +1061,10 @@ watch(pagePickup, (oldValue, newValue) => {
 });
 watch(pageDelivery, (oldValue, newValue) => {
   refreshDeliveries();
+});
+watch(showConfig, (newValue) => {
+  if (newValue === false) {
+    tourDash.complete();
+  }
 });
 </script>

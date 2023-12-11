@@ -2,6 +2,9 @@ import { authToken } from "../../utils/authToken";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+/**
+ * function to delete a client app credential
+ */
 export default defineEventHandler(async (event) => {
   const app = getRouterParam(event, "app");
   const jwtBody = await authToken(event);

@@ -2,6 +2,10 @@ import { authToken } from "../../utils/authToken";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+/**
+ * function to create a client app credential
+ * app is used to comunnicate with the sara api
+ */
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const jwtBody = await authToken(event);

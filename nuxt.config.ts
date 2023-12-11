@@ -29,6 +29,8 @@ export default defineNuxtConfig({
   ],
   postcss: {
     plugins: {
+      "postcss-import": {},
+      "tailwindcss/nesting": {},
       tailwindcss: {},
       autoprefixer: {},
     },
@@ -62,4 +64,5 @@ export default defineNuxtConfig({
       handler: "~/socket/ws",
     },
   ],
+  plugins: ["~/plugins/shepherd.ts"],
 });

@@ -3,6 +3,9 @@ import { authToken } from "./authToken";
 import { getCredentials } from "./getCredentials";
 import { Sara } from "sara-sdk-ts";
 
+/**
+ * sara SDK instances
+ */
 export async function saraSession(event: H3Event<EventHandlerRequest>) {
   const token = await authToken(event);
   const credentials = await getCredentials(token);

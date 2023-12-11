@@ -45,6 +45,9 @@ export class Session implements ISession {
   }
 }
 
+/**
+ * function to post auth token at sara api
+ */
 export async function authSara(session: ISession) {
   const config = useRuntimeConfig();
   const axios = new Axios({

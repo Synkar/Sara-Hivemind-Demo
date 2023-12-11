@@ -4,6 +4,9 @@ import { authToken } from "./authToken";
 import { getCredentials } from "./getCredentials";
 import { auth } from "./authSara";
 
+/**
+ * axios config
+ */
 export async function axiosHandler(event: H3Event<EventHandlerRequest>) {
   const token = await authToken(event);
   const credentials = await getCredentials(token);

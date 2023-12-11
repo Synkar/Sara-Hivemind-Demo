@@ -2,6 +2,9 @@ import { hashText } from "../utils/bcrypt";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+/**
+ * function to register a new user
+ */
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { username, password } = body as Record<string, string>;

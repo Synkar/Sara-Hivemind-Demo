@@ -2,6 +2,9 @@ import nJwt from "njwt";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+/**
+ * function to get credentials of a user
+ */
 export async function getCredentials(tokenDecoded: nJwt.JSONMap) {
   if (tokenDecoded && tokenDecoded.sub) {
     const user = await prisma.users.findUnique({

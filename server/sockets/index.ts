@@ -5,6 +5,9 @@ import { decodeToken } from "../utils/authToken";
 import { getCredentials } from "../utils/getCredentials";
 import { Sara } from "sara-sdk-ts";
 
+/**
+ * function that connects to the sara.io socket server to receive logs
+ */
 export default (nuxtServer: NuxtServer) => {
   const ioServer = new Server(nuxtServer);
   ioServer.on("connection", async (socket) => {
