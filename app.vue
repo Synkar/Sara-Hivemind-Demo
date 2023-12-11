@@ -54,7 +54,20 @@
       >
         <template #header>
           <div class="flex justify-between items-center">
-            <div>User Configuration</div>
+            <div class="flex items-center">
+              <div>User Configuration</div>
+              <UTooltip text="Start tour">
+                <UButton
+                  id="tour"
+                  @click="startTour"
+                  icon="i-heroicons-information-circle"
+                  size="sm"
+                  square
+                  variant="link"
+                  color="gray"
+                />
+              </UTooltip>
+            </div>
             <UButton
               @click="toggleUserConfig"
               icon="i-heroicons-x-mark"
@@ -177,8 +190,12 @@ async function onSubmit(event: FormSubmitEvent<UserKeySchema>) {
   keys.value = auth.apps as unknown as Credentials[];
   await auth.getSelectedApp();
   keySelected.value = auth.appSelected;
-  tour.next();
+  if (tour.isActive()) tour.next();
 }
+
+const startTour = () => {
+  tour.start();
+};
 
 async function setSelectedKey() {
   if (keySelected && keySelected.value) {
