@@ -1,11 +1,12 @@
 # use node 16 alpine image
-FROM node:18.17.1-alpine3.17 as builder
+FROM node:18.12.1 as builder
 
 # create work directory in app folder
 WORKDIR /app
 
 # install required packages for node image
-RUN apk --no-cache add openssh g++ make python3 git
+
+RUN apt-get update && apt-get install -y openssl libssl-dev
 
 # copy over package.json files
 COPY package.json /app/
@@ -18,15 +19,14 @@ RUN npm ci && npm cache clean --force
 ADD . /app
 
 # prisma migrate
-RUN apk add openssl1.1-compat
 RUN npx prisma generate
 
 # build the project
 RUN npm run build
 
 # start runner image
-FROM node:18.17.1-alpine3.17 as runner
-RUN apk add openssl1.1-compat
+FROM node:18.12.1-slim as runner
+RUN apt-get update && apt-get install -y openssl libssl-dev
 
 
 WORKDIR /app

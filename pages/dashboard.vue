@@ -564,7 +564,8 @@ const refreshAll = async () => {
 };
 
 const connectSocket = () => {
-  socket.value = io(`${config.public.HOST}:${config.public.WS_PORT}`, {
+  socket.value = io(`${config.public.WS_HOST_PORT}`, {
+    path: `${config.public.WS_PATH}`,
     query: {
       room: selectedOperation.value,
     },
