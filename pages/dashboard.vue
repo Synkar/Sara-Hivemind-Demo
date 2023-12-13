@@ -529,6 +529,9 @@ const refreshAll = async () => {
 };
 
 const connectSocket = () => {
+  console.log(
+    `Will connect to socket ${config.public.WS_HOST_PORT} ${config.public.WS_PATH}`
+  );
   socket.value = io(`${config.public.WS_HOST_PORT}`, {
     path: `${config.public.WS_PATH}`,
     query: {
