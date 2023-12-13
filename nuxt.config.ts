@@ -38,6 +38,7 @@ export default defineNuxtConfig({
       public: {
         IS_SECURE: false,
         WS_HOST_PORT: process.env.WS_HOST_PORT || "localhost:3001",
+        WS_PATH: process.env.WS_PATH || "/io/socket.io",
       },
     },
   },
@@ -47,6 +48,7 @@ export default defineNuxtConfig({
         IS_SECURE: true,
         WS_HOST_PORT:
           process.env.WS_HOST_PORT || "dash-demo.sara.synkar.com/io",
+        WS_PATH: process.env.WS_PATH || "/io/socket.io",
       },
     },
   },
@@ -58,6 +60,7 @@ export default defineNuxtConfig({
       HOST: process.env.HOST || "http://localhost",
       WS_PORT: process.env.WS_PORT || "3001",
       WS_HOST_PORT: process.env.WS_HOST_PORT || "dash-demo.sara.synkar.com/io",
+      WS_PATH: process.env.WS_PATH || "/io/socket.io",
     },
   },
   serverHandlers: [
