@@ -17,12 +17,8 @@ export const useRobots = defineStore("robots", {
       if (robot) return robot.name;
       else {
         try {
-          const token = localStorage.getItem("token");
           const request = await $fetch(`/api/iam/robots/${uuid}`, {
             method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           });
           this.robots.push({
             uuid: request.uuid,
