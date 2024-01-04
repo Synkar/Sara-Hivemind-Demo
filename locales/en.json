@@ -34,6 +34,13 @@
           "finish": "Finish"
         }
       }
+    },
+    "userConfig":{
+      "tour": {
+        "config": "Click here to register app credentials.",
+        "appCredentials": "Define your App Credentials here. App Credentials can be obtained from your account on SARA console.",
+        "saveApp": "Select and save your App Credentials."
+      }
     }
   }
 }

@@ -217,6 +217,13 @@ const toggleUserConfig = async () => {
   if (auth.apps && auth.apps.length <= 0) {
     tour.start();
   }
+  if (
+    tour.isActive() &&
+    tour.getCurrentStep().id === "user-config" &&
+    showUserConfig.value
+  ) {
+    tour.next();
+  }
 };
 
 const deleteKey = async (appId: string) => {
@@ -271,6 +278,8 @@ const logoutUser = async () => {
   }
 };
 
+const { t } = useI18n();
+
 const tour = useShepherd({
   useModalOverlay: true,
 });
@@ -291,8 +300,23 @@ onMounted(async () => {
     }
   }
   tour.addStep({
+    attachTo: { element: "#user-config", on: "bottom" },
+    id: "user-config",
+    text: t("pages.userConfig.tour.config"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tour.next,
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tour.addStep({
     attachTo: { element: "#user-app", on: "top" },
-    text: "Define your App Credentials here. App Credentials can be obtained from your account on SARA console.",
+    text: t("pages.userConfig.tour.appCredentials"),
     floatingUIOptions: {
       middleware: [offset(15)],
     },
@@ -308,8 +332,8 @@ onMounted(async () => {
     floatingUIOptions: {
       middleware: [offset(15)],
     },
-    attachTo: { element: "#save", on: "right" },
-    text: "Select and save your App Credentials.",
+    attachTo: { element: "#save", on: "top" },
+    text: t("pages.userConfig.tour.saveApp"),
     buttons: [
       {
         action: tour.back,
@@ -323,7 +347,7 @@ onMounted(async () => {
       },
     ],
   });
-  //tour.start();
+  tour.start();
 });
 
 watch(
