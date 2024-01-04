@@ -1,6 +1,35 @@
 {
   "name": "Hivemind Demo",
   "pages": {
+    "app": {
+      "tooltips": {
+        "userConfig": "Open User Configuration",
+        "toogleColorMode": "Toogle Color Mode",
+        "Logout": "Logout"
+      },
+      "modal": {
+        "title": "User Configuration",
+        "tour": "Start Tour",
+        "form": {
+          "appId": {
+            "label": "App ID",
+            "placeholder": "Type your App ID"
+          },
+          "appSecret": {
+            "label": "App Secret",
+            "placeholder": "Type your App Secret"
+          }
+        },
+        "yourApps": "Your Apps",
+        "selectedApp": "Selected App",
+        "submit": "Save",
+        "feedbacks": {
+          "deleted": "App Deleted Successfully!",
+          "logout": "Logout Successfully!",
+          "noApps": "You don't have any App Credentials Registered, click on user icon to set one"
+        }
+      }
+    },
     "login": {
       "title": "Login",
       "form": {
@@ -9,16 +38,126 @@
         "submit": "Login"
       },
       "errors": {
-        "invalid": "Invalid username or password"
+        "invalid": "Username or Password Incorrect!",
+        "unknown": "Something Strange Happened!"
       },
       "links": {
         "register": "Click here to register"
       }
     },
-    "dashboard":{
-      "tour":{
+    "register": {
+      "title": "Register",
+      "form": {
+        "username": {
+          "label": "Username",
+          "placeholder": "Username"
+        },
+        "password": {
+          "label": "Password",
+          "placeholder": "Password"
+        },
+        "passwordConfirmation": {
+          "label": "Password Confirmation",
+          "placeholder": "Password Confirmation"
+        },
+        "submit": "Register",
+        "links": {
+          "login": "Click here to login"
+        }
+      },
+      "errors": {
+        "passwordsNotMatch": "Passwords do not match!"
+      },
+      "success": "User registered successfully!",
+      "links": {
+        "login": "Click here to login"
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Pickup and Delivery DEMO",
+      "buttons": {
+        "logout": "Logout",
+        "userConfig": "User Config",
+        "clearLogs": "Clear Logs",
+        "openOperation": "Open Operation Configuration",
+        "tour": "Start Tour"
+      },
+      "pickup": "Pickup",
+      "delivery": "Delivery",
+      "floor": "Floor",
+      "select": "Select",
+      "logs": "Logs",
+      "space": "Space",
+      "requests": "Requests",
+      "landmark": {
+        "loading": "Loading Landmarks..."
+      },
+      "operation": {
+        "request:": "Sending Request..."
+      },
+      "errors": {
+        "selectBoth": "Please select both pickup and delivery landmark to send a request!",
+        "noOperation": "Please select an operation on configuration",
+        "noCredentials": "You don't have any App Credentials Registered, click on user icon to set one"
+      },
+      "feedbacks": {
+        "logsConnecting": "Connecting to Operation",
+        "unlocked": "Container Unlocked",
+        "request": {
+          "title": "Request",
+          "assigned": "Assigned",
+          "running": "is Running",
+          "startedStage": "Started Stage",
+          "finishedStage": "Finished Stage",
+          "locked": "Locked",
+          "unlock": "Unlock Container",
+          "cancelled": "Cancelled, reson:",
+          "finished": "Finished Successfully",
+          "wakeup": "Robot Wakeup",
+          "shutdown": "Robot Shutdown",
+          "unknown": "UNKNOWN",
+          "log": "LOG"
+        }
+      },
+      "modal": {
+        "config": {
+          "title": "Hivemind Configuration",
+          "form": {
+            "operation": {
+              "label": "Operation",
+              "placeholder": "Choose an Operation"
+            },
+            "pickupWindow": {
+              "title": "Pickup Window Configuration",
+              "upper": {
+                "label": "Pickup Window Upper",
+                "placeholder": "Pickup Window Upper Time"
+              },
+              "lower": {
+                "label": "Pickup Window Lower",
+                "placeholder": "Pickup Window Lower Time"
+              }
+            },
+            "deliveryWindow": {
+              "title": "Delivery Window Configuration",
+              "upper": {
+                "label": "Delivery Window Upper",
+                "placeholder": "Delivery Window Upper Time"
+              },
+              "lower": {
+                "label": "Delivery Window Lower",
+                "placeholder": "Delivery Window Lower Time"
+              }
+            },
+            "submit": "Save",
+            "saving": "Saving..."
+          }
+        }
+      },
+      "tour": {
         "operationConfig": "Click here to configure your Operation.",
-        "operationSelect":"Select your Operation here. This will define the operationId used in the requests.",
+        "operationSelect": "Select your Operation here. This will define the operationId used in the requests.",
         "pickupWindow": "Change the Pickup Window here.",
         "deliveryWindow": "Change the Delivery Window here.",
         "pickupLandmark": "Select one pickup landmark here.",
@@ -35,12 +174,55 @@
         }
       }
     },
-    "userConfig":{
+    "userConfig": {
       "tour": {
         "config": "Click here to register app credentials.",
         "appCredentials": "Define your App Credentials here. App Credentials can be obtained from your account on SARA console.",
-        "saveApp": "Select and save your App Credentials."
+        "saveApp": "Select and save your App Credentials.",
+        "buttons": {
+          "next": "Next",
+          "back": "Back",
+          "finish": "Finish"
+        }
       }
     }
+  },
+  "components": {
+    "table": {
+      "rowsPerPage": "Rows per page",
+      "statusFilter": "Status",
+      "columns": "Columns",
+      "resetFilters": "Reset",
+      "pagination": {
+        "showing": "Showing",
+        "to": "to",
+        "of": "of",
+        "results": "results"
+      },
+      "fields": {
+        "uuid": "UUID",
+        "externalId": "External ID",
+        "robot": "Robot",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "queued": "Queued",
+        "assigned": "Assigned",
+        "running": "Running",
+        "finished": "Finished",
+        "cancelled": "Cancelled",
+        "locked": "Locked",
+        "unknown": "Unknown"
+      },
+      "feedbacks": {
+        "cancel": "Request Cancelled Successfully!",
+        "unlock": "Container Unlocked Successfully!"
+      }
+    }
+  },
+  "errors": {
+    "minLength": "{0} must be at least {1} characters long",
+    "unknown": "Something Strange Happened!"
   }
 }

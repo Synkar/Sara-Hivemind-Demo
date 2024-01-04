@@ -3,8 +3,10 @@
     <div class="flex flex-col gap-4 w-full mt-4">
       <div class="flex justify-between items-center">
         <div class="flex">
-          <h1 class="text-lg text-left">Pickup and Delivery DEMO</h1>
-          <UTooltip text="Start tour">
+          <h1 class="text-lg text-left">
+            {{ $t("pages.dashboard.subtitle") }}
+          </h1>
+          <UTooltip :text="$t('pages.dashboard.buttons.tour')">
             <UButton
               id="tour"
               @click="startTour"
@@ -29,7 +31,10 @@
             />
           </UTooltip>
           -->
-          <UTooltip text="Clear Logs" :shortcuts="['C']">
+          <UTooltip
+            :text="$t('pages.dashboard.buttons.clearLogs')"
+            :shortcuts="['C']"
+          >
             <UButton
               @click="clearLogs"
               icon="i-heroicons-minus-circle"
@@ -39,7 +44,10 @@
               color="gray"
             />
           </UTooltip>
-          <UTooltip text="Open Operation Configuration" :shortcuts="['G']">
+          <UTooltip
+            :text="$t('pages.dashboard.buttons.openOperation')"
+            :shortcuts="['G']"
+          >
             <UButton
               id="operation-config"
               @click="toggleConfig"
@@ -54,11 +62,11 @@
       </div>
       <div class="flex items-start">
         <div class="flex flex-col whitespace-nowrap gap-2 w-40" id="pickups">
-          <span class="w-40">Pickup</span>
+          <span class="w-40">{{ $t("pages.dashboard.pickup") }}</span>
           <!--<span v-if="pf && pf.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
             v-for="(p, i) in pickups"
-            :text="'Select ' + p.name"
+            :text="$t('pages.dashboard.select') + ' ' + p.name"
             :shortcuts="i != 9 ? [(i + 1).toString()] : ['0']"
             class="w-40"
           >
@@ -73,7 +81,7 @@
                 <UBadge
                   color="white"
                   variant="solid"
-                  :label="'Floor ' + p.floor"
+                  :label="$t('pages.dashboard.floor') + ' ' + p.floor"
                 ></UBadge>
               </template>
             </UButton>
@@ -98,7 +106,7 @@
           />
         </div>
         <div class="flex flex-col text-center w-full px-4 justify-center gap-2">
-          <div>Logs</div>
+          <div>{{ $t("pages.dashboard.logs") }}</div>
           <UCard
             class="text-left"
             :ui="{ body: { padding: 'px-1 py-1 sm:p-1' } }"
@@ -110,11 +118,13 @@
           ></UCard>
         </div>
         <div class="flex flex-col whitespace-nowrap gap-2 w-40" id="deliveries">
-          <span class="text-right w-40">Delivery</span>
+          <span class="text-right w-40">{{
+            $t("pages.dashboard.delivery")
+          }}</span>
           <!--<span v-if="df && df.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
             v-for="(d, i) in deliveries"
-            :text="'Select ' + d.name"
+            :text="$t('pages.dashboard.select') + ' ' + d.name"
             :shortcuts="
               i != 9 ? [metaSymbol, (i + 1).toString()] : [metaSymbol, '0']
             "
@@ -131,7 +141,7 @@
                 <UBadge
                   color="white"
                   variant="solid"
-                  :label="'Floor ' + d.floor"
+                  :label="$t('pages.dashboard.floor') + ' ' + d.floor"
                 ></UBadge> </template
             ></UButton>
           </UTooltip>
@@ -157,7 +167,9 @@
       </div>
       <div class="flex" id="create-request">
         <UButton block color="gray" @click="createRequest" label="Send Request"
-          ><template #trailing><UKbd>Space</UKbd></template></UButton
+          ><template #trailing
+            ><UKbd>{{ $t("pages.dashboard.space") }}</UKbd></template
+          ></UButton
         >
       </div>
       <div
@@ -165,14 +177,14 @@
         class="flex flex-col justify-center items-center"
       >
         <UProgress animation="carousel" class="mb-1" />
-        Loading Landmarks...
+        {{ $t("pages.dashboard.landmark.loading") }}
       </div>
       <div
         v-show="sendingRequest"
         class="flex flex-col justify-center items-center"
       >
         <UProgress animation="carousel" class="mb-1" />
-        Sending Request...
+        {{ $t("pages.dashboard.operation.request") }}
       </div>
     </div>
     <UAccordion
@@ -222,7 +234,7 @@
       >
         <template #header>
           <div class="flex justify-between items-center">
-            <div>Hivemind Configuration</div>
+            <div>{{ $t("pages.dashboard.modal.config.title") }}</div>
             <UButton
               @click="toggleConfig"
               icon="i-heroicons-x-mark"
@@ -239,10 +251,18 @@
           :state="configState"
           @submit="onSubmit"
         >
-          <UDivider label="Operation" />
-          <UFormGroup label="Operation" name="operation" id="operationSelect">
+          <UDivider
+            :label="$t('pages.dashboard.modal.config.form.operation.label')"
+          />
+          <UFormGroup
+            :label="$t('pages.dashboard.modal.config.form.operation.label')"
+            name="operation"
+            id="operationSelect"
+          >
             <USelectMenu
-              placeholder="Choose the Operation"
+              :placeholder="
+                $t('pages.dashboard.modal.config.form.operation.placeholder')
+              "
               v-model="configState.operation"
               :options="operations"
               value-attribute="uuid"
@@ -252,48 +272,94 @@
                 <span v-if="currentOperation">{{
                   currentOperation?.name
                 }}</span>
-                <span v-else>Choose the Operation</span>
+                <span v-else>{{
+                  $t("pages.dashboard.modal.config.form.operation.placeholder")
+                }}</span>
               </template>
             </USelectMenu>
           </UFormGroup>
           <div id="pickup-window">
-            <UDivider label="Pickup Window Configuration" />
-            <UFormGroup label="Pickup Window Upper" name="pickup-window-upper">
+            <UDivider
+              :label="
+                $t('pages.dashboard.modal.config.form.pickupWindow.title')
+              "
+            />
+            <UFormGroup
+              :label="
+                $t('pages.dashboard.modal.config.form.pickupWindow.upper.label')
+              "
+              name="pickup-window-upper"
+            >
               <UInput
-                placeholder="Pickup Window Upper Time"
+                :placeholder="
+                  $t(
+                    'pages.dashboard.modal.config.form.pickupWindow.upper.placeholder'
+                  )
+                "
                 v-model="configState.pickup.window.upper"
               ></UInput>
             </UFormGroup>
-            <UFormGroup label="Pickup Window Lower" name="pickup-window-lower">
+            <UFormGroup
+              :label="
+                $t('pages.dashboard.modal.config.form.pickupWindow.lower.label')
+              "
+              name="pickup-window-lower"
+            >
               <UInput
-                placeholder="Pickup Window Lower Time"
+                :placeholder="
+                  $t(
+                    'pages.dashboard.modal.config.form.pickupWindow.lower.placeholder'
+                  )
+                "
                 v-model="configState.pickup.window.lower"
               ></UInput>
             </UFormGroup>
           </div>
           <div id="delivery-window">
-            <UDivider label="Delivery Window Configuration" />
+            <UDivider
+              :label="
+                $t('pages.dashboard.modal.config.form.deliveryWindow.title')
+              "
+            />
             <UFormGroup
-              label="Delivery Window Upper"
+              :label="
+                $t(
+                  'pages.dashboard.modal.config.form.deliveryWindow.upper.label'
+                )
+              "
               name="delivery-window-upper"
             >
               <UInput
-                placeholder="Delivery Window Upper Time"
+                :placeholder="
+                  $t(
+                    'pages.dashboard.modal.config.form.deliveryWindow.upper.placeholder'
+                  )
+                "
                 v-model="configState.delivery.window.upper"
               ></UInput>
             </UFormGroup>
             <UFormGroup
-              label="Delivery Window Lower"
+              :label="
+                $t(
+                  'pages.dashboard.modal.config.form.deliveryWindow.lower.label'
+                )
+              "
               name="delivery-window-lower"
             >
               <UInput
-                placeholder="Delivery Window Lower Time"
+                :placeholder="
+                  $t(
+                    'pages.dashboard.modal.config.form.deliveryWindow.lower.placeholder'
+                  )
+                "
                 v-model="configState.delivery.window.lower"
               ></UInput>
             </UFormGroup>
           </div>
           <div class="flex justify-end">
-            <UButton type="submit">Save</UButton>
+            <UButton type="submit">{{
+              $t("pages.dashboard.modal.config.form.submit")
+            }}</UButton>
           </div>
         </UForm>
         <template #footer>
@@ -302,7 +368,7 @@
             class="flex flex-col justify-center items-center"
           >
             <UProgress animation="carousel" class="mb-1" />
-            Saving...
+            {{ $t("pages.dashboard.modal.config.form.saving") }}
           </div>
         </template>
       </UCard>
@@ -334,6 +400,8 @@ import imageUrl from "~/assets/images/url.png";
 definePageMeta({
   middleware: ["auth"],
 });
+
+const $t = useI18n().t;
 
 const auth = useAuth();
 const hivemind = useHivemind();
@@ -502,8 +570,7 @@ async function createRequest() {
   } else {
     toast.add({
       icon: "i-heroicons-exclamation-circle",
-      title:
-        "Please select both pickup and delivery landmark to send a request!",
+      title: $t("pages.dashboard.errors.selectBoth"),
       color: "red",
     });
   }
@@ -548,15 +615,14 @@ const refreshAll = async () => {
       } else {
         toast.add({
           icon: "i-heroicons-exclamation-circle",
-          title: "Please select an operation on configuration",
+          title: $t("pages.dashboard.errors.noOperation"),
           color: "yellow",
         });
       }
     } else {
       toast.add({
         icon: "i-heroicons-exclamation-circle",
-        title:
-          "You don't have any App Credentials Registered, click on user icon to set one",
+        title: $t("pages.dashboard.errors.noCredentials"),
         color: "red",
       });
     }
@@ -573,7 +639,9 @@ const connectSocket = () => {
   });
 
   socket.value.on("connect", () => {
-    log.value += `<p>[LOG]: Connecting to Operation: ${hivemind.operation?.name}</p>`;
+    log.value += `<p>[${$t("pages.dashboard.feedbacks.request.log")}]: ${$t(
+      "pages.dashboard.feedbacks.logsConnecting"
+    )}: ${hivemind.operation?.name}</p>`;
   });
 
   socket.value.on("message", async (socketMsg: SocketIO) => {
@@ -795,13 +863,13 @@ const unlockContainer = async (operation: string, requestUuid: string) => {
   const request = await hivemind.continueRequest(operation, requestUuid);
   if (request) {
     toast.add({
-      title: "Container Unlocked",
+      title: $t("pages.dashboard.feedbacks.unlocked"),
       icon: "i-heroicons-check-circle",
       color: "green",
     });
   } else {
     toast.add({
-      title: "Something Strange Happened!",
+      title: $t("errors.unknown"),
       icon: "i-heroicons-exclamation-circle",
       color: "red",
     });
@@ -814,44 +882,82 @@ const generateMessage = async (message: SocketIO) => {
     switch (message.action) {
       case "REQUEST_ASSIGNED": {
         const data = message.data.data as RequestAssignedData;
-        return `[${robotName}]: Request #${data.externalRequestId} Assigned`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.assigned"
+        )}`;
       }
       case "REQUEST_RUNNING": {
         const data = message.data.data as RequestRunningData;
-        return `[${robotName}]: Request #${data.externalRequestId} is Running`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.running"
+        )}`;
       }
       case "REQUEST_STAGE_STARTED": {
         const data = message.data.data as RequestStageStartedData;
-        return `[${robotName}]: (${data.nodeType}) Request #${data.externalRequestId} Started Stage ${data.requestStage}`;
+        return `[${robotName}]: (${data.nodeType}) ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.startedStage"
+        )} ${data.requestStage}`;
       }
       case "REQUEST_STAGE_FINISHED": {
         const data = message.data.data as RequestStageFinishedData;
-        return `[${robotName}]: (${data.nodeType}) Request #${data.externalRequestId} Finished Stage ${data.requestStage}`;
+        return `[${robotName}]: (${data.nodeType}) ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.finishedStage"
+        )} ${data.requestStage}`;
       }
       case "REQUEST_LOCKED": {
         const data = message.data.data as RequestLockedData;
-        const text = `[${robotName}]: Request #${data.externalRequestId} Locked <button title="Unlock Container" id="${data.requestId}" type="button" class="unlock-container-button focus:outline-none focus-visible:outline-0 disabled:cursor-not-allowed disabled:opacity-75 flex-shrink-0 font-medium rounded-md text-base gap-x-2.5 p-2.5 text-blue-500 hover:text-blue-600 disabled:text-blue-500 dark:text-blue-400 dark:hover:text-blue-500 dark:disabled:text-blue-400 underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 inline-flex items-center"><span class="i-heroicons-lock-open flex-shrink-0 h-6 w-6" aria-hidden="true"></span></button>`;
+        const text = `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.locked"
+        )} <button title="${$t(
+          "pages.dashboard.feedbacks.request.unlock"
+        )}" id="${
+          data.requestId
+        }" type="button" class="unlock-container-button focus:outline-none focus-visible:outline-0 disabled:cursor-not-allowed disabled:opacity-75 flex-shrink-0 font-medium rounded-md text-base gap-x-2.5 p-2.5 text-blue-500 hover:text-blue-600 disabled:text-blue-500 dark:text-blue-400 dark:hover:text-blue-500 dark:disabled:text-blue-400 underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 inline-flex items-center"><span class="i-heroicons-lock-open flex-shrink-0 h-6 w-6" aria-hidden="true"></span></button>`;
         return text;
       }
       case "REQUEST_CANCELLED": {
         const data = message.data.data as RequestCancelledData;
-        return `[${robotName}]: Request #${data.externalRequestId} Cancelled, reason: ${data.cancelledReason}`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.cancelled"
+        )} ${data.cancelledReason}`;
       }
       case "REQUEST_FINISHED": {
         const data = message.data.data as RequestFinishedData;
-        return `[${robotName}]: Request #${data.externalRequestId} Finished Successfully`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.finished"
+        )}`;
       }
       case "ROBOT_WAKEUP": {
-        return `[${robotName}]: Robot Wakeup`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.wakeup"
+        )}`;
       }
       case "ROBOT_SHUTDOWN": {
-        return `[${robotName}]: Robot Shutdown`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.shutdown"
+        )}`;
       }
       default:
-        return `[UNKNOWN]: ${JSON.stringify(message.data)}`;
+        return `[${$t(
+          "pages.dashboard.feedbacks.request.unknown"
+        )}]: ${JSON.stringify(message.data)}`;
     }
   } else {
-    return `[LOG]: ${message.data}`;
+    return `[${$t("pages.dashboard.feedbacks.request.log")}]: ${message.data}`;
   }
 };
 
@@ -885,7 +991,7 @@ onMounted(async () => {
           return;
         },
         classes: "shepherd-button-primary",
-        text: "Next",
+        text: $t("pages.dashboard.tour.buttons.next"),
       },
     ],
     floatingUIOptions: {
@@ -906,12 +1012,12 @@ onMounted(async () => {
           return;
         },
         classes: "shepherd-button-secondary",
-        text: "Back",
+        text: $t("pages.dashboard.tour.buttons.back"),
       },
       {
         action: tourDash.next,
         classes: "shepherd-button-primary",
-        text: "Next",
+        text: $t("pages.dashboard.tour.buttons.next"),
       },
     ],
   });
@@ -925,12 +1031,12 @@ onMounted(async () => {
       {
         action: tourDash.back,
         classes: "shepherd-button-secondary",
-        text: "Back",
+        text: $t("pages.dashboard.tour.buttons.back"),
       },
       {
         action: tourDash.next,
         classes: "shepherd-button-primary",
-        text: "Next",
+        text: $t("pages.dashboard.tour.buttons.next"),
       },
     ],
   });
@@ -944,7 +1050,7 @@ onMounted(async () => {
       {
         action: tourDash.back,
         classes: "shepherd-button-secondary",
-        text: "Back",
+        text: $t("pages.dashboard.tour.buttons.back"),
       },
       {
         async action() {
@@ -953,7 +1059,7 @@ onMounted(async () => {
           return;
         },
         classes: "shepherd-button-primary",
-        text: "Next",
+        text: $t("pages.dashboard.tour.buttons.next"),
       },
     ],
   });
@@ -965,12 +1071,12 @@ onMounted(async () => {
       {
         action: tourDash.back,
         classes: "shepherd-button-secondary",
-        text: "Back",
+        text: $t("pages.dashboard.tour.buttons.back"),
       },
       {
         action: tourDash.next,
         classes: "shepherd-button-primary",
-        text: "Next",
+        text: $t("pages.dashboard.tour.buttons.next"),
       },
     ],
   });
@@ -982,12 +1088,12 @@ onMounted(async () => {
       {
         action: tourDash.back,
         classes: "shepherd-button-secondary",
-        text: "Back",
+        text: $t("pages.dashboard.tour.buttons.back"),
       },
       {
         action: tourDash.next,
         classes: "shepherd-button-primary",
-        text: "Next",
+        text: $t("pages.dashboard.tour.buttons.next"),
       },
     ],
   });
@@ -1024,12 +1130,12 @@ onMounted(async () => {
       {
         action: tourDash.back,
         classes: "shepherd-button-secondary",
-        text: "Back",
+        text: $t("pages.dashboard.tour.buttons.back"),
       },
       {
         action: tourDash.next,
         classes: "shepherd-button-primary",
-        text: "Finish",
+        text: $t("pages.dashboard.tour.buttons.finish"),
       },
     ],
   });
@@ -1042,7 +1148,7 @@ onUnmounted(() => {
 
 const tableAccordion = [
   {
-    label: "Requests",
+    label: $t("pages.dashboard.requests"),
     icon: "i-heroicons-arrows-right-left",
     slot: "requests",
   },
