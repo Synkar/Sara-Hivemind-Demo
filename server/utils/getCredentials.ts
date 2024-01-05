@@ -2,6 +2,26 @@ import nJwt from "njwt";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+/**
+ *
+ * @param tokenDecoded
+ * @returns Credentials
+ * @description
+ * This function is used to get the credentials of the user.
+ * It uses the tokenDecoded to get the user id.
+ * Then it uses the prisma client to get the user.
+ * If the user has a selectedCredential it will return that credential.
+ * If the user doesn't have a selectedCredential it will return the first credential.
+ * If the user doesn't have any credentials it will throw an error.
+ * If the user doesn't exist it will throw an error.
+ * If the token is invalid it will throw an error.
+ * @throws {Error} Credentials Not Found!
+ * @throws {Error} User not found!
+ * @throws {Error} Invalid Token Format
+ * @example
+ * const credentials = await getCredentials(tokenDecoded);
+ *
+ */
 export async function getCredentials(tokenDecoded: nJwt.JSONMap) {
   if (tokenDecoded && tokenDecoded.sub) {
     const user = await prisma.users.findUnique({

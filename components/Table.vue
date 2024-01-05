@@ -18,7 +18,9 @@
     <!-- Header and Action buttons -->
     <div class="flex justify-between items-center w-full px-4 py-3">
       <div class="flex items-center gap-1.5">
-        <span class="text-sm leading-5">Rows per page:</span>
+        <span class="text-sm leading-5"
+          >{{ $t("components.table.rowsPerPage") }}:</span
+        >
 
         <USelect
           v-model="pageCount"
@@ -33,7 +35,7 @@
           v-model="selectedStatus"
           :options="requestStatus"
           multiple
-          placeholder="Status"
+          :placeholder="$t('components.table.statusFilter')"
           class="w-40"
           v-if="false"
         />
@@ -48,7 +50,7 @@
 
         <USelectMenu v-model="selectedColumns" :options="columns" multiple>
           <UButton icon="i-heroicons-view-columns" color="gray" size="xs">
-            Columns
+            {{ $t("components.table.columns") }}
           </UButton>
         </USelectMenu>
 
@@ -59,7 +61,7 @@
           :disabled="search === '' && selectedStatus.length === 0"
           @click="resetFilters"
         >
-          Reset
+          {{ $t("components.table.resetFilters") }}
         </UButton>
       </div>
     </div>
@@ -128,13 +130,13 @@
       <div class="flex flex-wrap justify-between items-center">
         <div>
           <span class="text-sm leading-5">
-            Showing
+            {{ $t("components.table.pagination.showing") }}
             <span class="font-medium">{{ pageFrom }}</span>
-            to
+            {{ $t("components.table.pagination.to") }}
             <span class="font-medium">{{ pageTo }}</span>
-            of
+            {{ $t("components.table.pagination.of") }}
             <span class="font-medium">{{ pageTotal }}</span>
-            results
+            {{ $t("components.table.pagination.results") }}
           </span>
         </div>
 
@@ -160,31 +162,33 @@
 <script lang="ts" setup>
 import type { RequestRetrieve } from "~/models/Operation";
 
+const $t = useI18n().t;
+
 // Columns
 const columns = [
   {
     key: "uuid",
-    label: "UUID",
+    label: $t("components.table.fields.uuid"),
     sortable: false,
   },
   {
     key: "externalId",
-    label: "External ID",
+    label: $t("components.table.fields.externalId"),
     sortable: false,
   },
   {
     key: "robotAssigned",
-    label: "Robot",
+    label: $t("components.table.fields.robot"),
     sortable: false,
   },
   {
     key: "status",
-    label: "Status",
+    label: $t("components.table.fields.status"),
     sortable: false,
   },
   {
     key: "actions",
-    label: "Actions",
+    label: $t("components.table.fields.actions"),
     sortable: false,
   },
 ];
@@ -210,32 +214,32 @@ function select(row: any) {
 const requestStatus = [
   {
     key: "QUEUED",
-    label: "Queued",
+    label: $t("components.table.status.queued"),
     value: false,
   },
   {
     key: "ASSIGNED",
-    label: "Assigned",
+    label: $t("components.table.status.assigned"),
     value: false,
   },
   {
     key: "RUNNING",
-    label: "Running",
+    label: $t("components.table.status.running"),
     value: false,
   },
   {
     key: "FINISHED",
-    label: "Finished",
+    label: $t("components.table.status.finished"),
     value: false,
   },
   {
     key: "CANCELLED",
-    label: "Cancelled",
+    label: $t("components.table.status.cancelled"),
     value: false,
   },
   {
     key: "LOCKED",
-    label: "Locked",
+    label: $t("components.table.status.locked"),
     value: false,
   },
 ];
@@ -253,7 +257,7 @@ const getStatusLabel = (key: string) => {
   const request = requestStatus.find((r) => {
     return r.key == key;
   });
-  return request?.label || "No Status";
+  return request?.label || $t("components.table.status.unknown");
 };
 
 const search = ref("");
@@ -348,13 +352,13 @@ const cancelRequest = async (row: RequestRetrieve) => {
   const request = await hivemind.cancelRequest(row.operation.uuid, row.uuid);
   if (request) {
     toast.add({
-      title: "Request Cancelled Successfully!",
+      title: $t("components.table.feedbacks.cancel"),
       icon: "i-heroicons-check-circle",
       color: "green",
     });
   } else {
     toast.add({
-      title: "Something Strange Happened!",
+      title: $t("errors.unknown"),
       icon: "i-heroicons-exclamation-circle",
       color: "red",
     });
@@ -365,13 +369,13 @@ const unlockContainer = async (row: RequestRetrieve) => {
   const request = await hivemind.continueRequest(row.operation.uuid, row.uuid);
   if (request) {
     toast.add({
-      title: "Container Unlocked",
+      title: $t("components.table.feedbacks.unlock"),
       icon: "i-heroicons-check-circle",
       color: "green",
     });
   } else {
     toast.add({
-      title: "Something Strange Happened!",
+      title: $t("errors.unknown"),
       icon: "i-heroicons-exclamation-circle",
       color: "red",
     });

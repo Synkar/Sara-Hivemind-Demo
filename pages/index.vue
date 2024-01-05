@@ -65,11 +65,21 @@ definePageMeta({
 
 const router = useRouter();
 const toast = useToast();
-const auth = useAuth();
+const $t = useI18n().t;
 
 const schema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters long"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
+  username: z
+    .string()
+    .min(
+      3,
+      $t("errors.minLength").replace("{0}", "username").replace("{1}", "3")
+    ),
+  password: z
+    .string()
+    .min(
+      6,
+      $t("errors.minLength").replace("{0}", "password").replace("{1}", "6")
+    ),
 });
 
 type Schema = z.output<typeof schema>;
@@ -96,13 +106,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     if (error.statusCode == 401) {
       toast.add({
         color: "red",
-        title: "Username or Password Incorrect!",
+        title: $t("pages.login.errors.invalid"),
         icon: "i-heroicons-exclamation-circle",
       });
     } else {
       toast.add({
         color: "red",
-        title: "Something Strange Happened!",
+        title: $t("pages.login.errors.unknown"),
         icon: "i-heroicons-exclamation-circle",
       });
     }

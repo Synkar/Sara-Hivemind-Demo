@@ -1,6 +1,9 @@
 import { axiosHandler } from "~/server/utils/axios";
 import { RequestBody, RequestRetrieve } from "~/models/Operation";
 
+/**
+ * function to create a request
+ */
 export default defineEventHandler(async (event) => {
   const body = (await readBody(event)) as RequestBody;
   const axios = await axiosHandler(event);
@@ -19,7 +22,7 @@ export default defineEventHandler(async (event) => {
     console.log(e);
     throw createError({
       statusCode: 400,
-      message: "Error while retrieving operation",
+      message: "Error while creating request",
     });
   }
 });

@@ -2,6 +2,9 @@ import type { PaginatedModel } from "../../../../models/Paginated";
 import type { OperationList } from "~/models/Operation";
 import { OperationInstance } from "~/server/utils/sarasdk";
 
+/**
+ * function to list operations
+ */
 export default defineEventHandler(async (event) => {
   const operations = await OperationInstance(event);
 

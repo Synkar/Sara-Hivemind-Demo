@@ -2,6 +2,10 @@ import { LandmarksList } from "~/models/Locality";
 import { PaginatedModel } from "~/models/Paginated";
 import { axiosHandler } from "~/server/utils/axios";
 
+/**
+ * function to list landmarks from a locality
+ * returns a paginated list of landmarks
+ */
 export default defineEventHandler(async (event) => {
   const axios = await axiosHandler(event);
   const locality = getRouterParam(event, "locality");
@@ -26,7 +30,7 @@ export default defineEventHandler(async (event) => {
     console.log(e);
     throw createError({
       statusCode: 400,
-      message: "Error while retrieving operation",
+      message: "Error while retrieving landmarks",
     });
   }
 });

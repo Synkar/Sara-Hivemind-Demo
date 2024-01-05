@@ -1,5 +1,9 @@
 import { axiosHandler } from "~/server/utils/axios";
 
+/**
+ * function to send the continue command to one request
+ * continue command is used when you want to unlock a request
+ */
 export default defineEventHandler(async (event) => {
   const axios = await axiosHandler(event);
   const operation = getRouterParam(event, "operation");
@@ -16,7 +20,7 @@ export default defineEventHandler(async (event) => {
     console.log(e);
     throw createError({
       statusCode: 400,
-      message: "Error while retrieving operation",
+      message: "Error while sending continue command",
     });
   }
 });

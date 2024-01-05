@@ -1,5 +1,8 @@
 import { axiosHandler } from "~/server/utils/axios";
 
+/**
+ * function to list a robot routes
+ */
 export default defineEventHandler(async (event) => {
   const axios = await axiosHandler(event);
   const robot = getRouterParam(event, "robot");
@@ -14,7 +17,7 @@ export default defineEventHandler(async (event) => {
     console.log(e);
     throw createError({
       statusCode: 400,
-      message: "Error while retrieving operation",
+      message: "Error while retrieving robot routes",
     });
   }
 });

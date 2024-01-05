@@ -1,6 +1,9 @@
 import { axiosHandler } from "~/server/utils/axios";
 import { RequestRetrieve } from "~/models/Operation";
 
+/**
+ * function to delete a request
+ */
 export default defineEventHandler(async (event) => {
   const axios = await axiosHandler(event);
   const operation = getRouterParam(event, "operation");
@@ -18,7 +21,7 @@ export default defineEventHandler(async (event) => {
     console.log(e);
     throw createError({
       statusCode: 400,
-      message: "Error while retrieving operation",
+      message: "Error while deleting request",
     });
   }
 });

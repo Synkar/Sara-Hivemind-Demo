@@ -1,5 +1,8 @@
 import { RobotsInstance } from "~/server/utils/sarasdk";
 
+/**
+ * function to retrieve a robot
+ */
 export default defineEventHandler(async (event) => {
   const robot = getRouterParam(event, "robot");
   if (robot) {

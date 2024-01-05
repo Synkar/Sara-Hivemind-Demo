@@ -2,6 +2,9 @@ import { authToken } from "../../utils/authToken";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+/**
+ * function to set the selected client app credential
+ */
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const jwtBody = await authToken(event);
