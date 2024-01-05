@@ -40,7 +40,7 @@ export default defineNuxtConfig({
       public: {
         IS_SECURE: false,
         WS_HOST_PORT: process.env.WS_HOST_PORT || "localhost:3001",
-        WS_PATH: process.env.WS_PATH || "/io/socket.io",
+        WS_PATH: process.env.WS_PATH || "/socket.io",
       },
     },
   },
