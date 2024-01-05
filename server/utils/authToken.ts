@@ -2,7 +2,17 @@ import { H3Event, EventHandlerRequest } from "h3";
 import nJwt from "njwt";
 
 /**
- * function to create auth token
+ * @param event H3Event
+ * @returns token
+ * @description
+ * This function is used to get the token from the event.
+ * It uses the getCookie function to get the token from the event.
+ * @example
+ * const token = await authToken(event);
+ * console.log(token);
+ * @throws {Error} No Token Provided!
+ * @throws {Error} Something Strange Happened when try to decode token
+ * @throws {Error} Invalid Token!
  */
 export async function authToken(event: H3Event<EventHandlerRequest>) {
   const token = getCookie(event, "token");
