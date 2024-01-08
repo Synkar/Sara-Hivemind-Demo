@@ -28,6 +28,7 @@
         "requestBody": "Request Body",
         "appCredentials": "Define your App Credentials here. App Credentials can be obtained from your account on SARA console.",
         "saveApp": "Select and save your App Credentials.",
+        "saveConfig": "Save this configuration.",
         "buttons": {
           "next": "Next",
           "back": "Back",

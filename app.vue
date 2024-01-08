@@ -194,7 +194,61 @@ async function onSubmit(event: FormSubmitEvent<UserKeySchema>) {
 }
 
 const startTour = () => {
-  tour.start();
+  tour.addStep({
+    attachTo: { element: "#user-config", on: "bottom" },
+    id: "user-config",
+    text: t("pages.userConfig.tour.config"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        async action() {
+          await (showUserConfig.value = true);
+          tour.next();
+          return;
+        },
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tour.addStep({
+    attachTo: { element: "#user-app", on: "top" },
+    id: "user-app",
+    text: t("pages.userConfig.tour.appCredentials"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tour.next,
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tour.addStep({
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    attachTo: { element: "#save", on: "top" },
+    text: t("pages.userConfig.tour.saveApp"),
+    buttons: [
+      {
+        action: tour.back,
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action: tour.complete,
+        classes: "shepherd-button-primary",
+        text: "Finish",
+      },
+    ],
+  });
+  if (!showUserConfig.value) tour.start();
+  else tour.show("user-app");
 };
 
 async function setSelectedKey() {
@@ -281,7 +335,11 @@ const logoutUser = async () => {
 const { t } = useI18n();
 
 const tour = useShepherd({
-  useModalOverlay: true,
+  defaultStepOptions: {
+    cancelIcon: {
+      enabled: true,
+    },
+  },
 });
 onMounted(async () => {
   if (auth.logged) {
@@ -297,57 +355,9 @@ onMounted(async () => {
           "You don't have any App Credentials Registered, click on user icon to set one",
         color: "yellow",
       });
+      startTour();
     }
   }
-  tour.addStep({
-    attachTo: { element: "#user-config", on: "bottom" },
-    id: "user-config",
-    text: t("pages.userConfig.tour.config"),
-    floatingUIOptions: {
-      middleware: [offset(15)],
-    },
-    buttons: [
-      {
-        action: tour.next,
-        classes: "shepherd-button-primary",
-        text: "Next",
-      },
-    ],
-  });
-  tour.addStep({
-    attachTo: { element: "#user-app", on: "top" },
-    text: t("pages.userConfig.tour.appCredentials"),
-    floatingUIOptions: {
-      middleware: [offset(15)],
-    },
-    buttons: [
-      {
-        action: tour.next,
-        classes: "shepherd-button-primary",
-        text: "Next",
-      },
-    ],
-  });
-  tour.addStep({
-    floatingUIOptions: {
-      middleware: [offset(15)],
-    },
-    attachTo: { element: "#save", on: "top" },
-    text: t("pages.userConfig.tour.saveApp"),
-    buttons: [
-      {
-        action: tour.back,
-        classes: "shepherd-button-secondary",
-        text: "Back",
-      },
-      {
-        action: tour.next,
-        classes: "shepherd-button-primary",
-        text: "Finish",
-      },
-    ],
-  });
-  tour.start();
 });
 
 watch(

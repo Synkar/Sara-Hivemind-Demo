@@ -292,7 +292,7 @@
               ></UInput>
             </UFormGroup>
           </div>
-          <div class="flex justify-end">
+          <div class="flex justify-end" id="save-operation">
             <UButton type="submit">Save</UButton>
           </div>
         </UForm>
@@ -422,13 +422,164 @@ async function selectDelivery(uuid: string) {
 
 const toggleConfig = async () => {
   await (showConfig.value = !showConfig.value);
-  console.log(tourDash.getCurrentStep());
 
   if (tourDash.isActive() && tourDash.getCurrentStep().id === "config")
     tourDash.next();
+
+  if (!selectedOperation.value && showConfig.value) {
+    tourDash.show(1);
+  }
 };
 
 const startTour = () => {
+  tourDash.addStep({
+    id: "config",
+    attachTo: { element: "#operation-config", on: "top" },
+    text: t("pages.dashboard.tour.operationConfig"),
+    buttons: [
+      {
+        async action() {
+          await (showConfig.value = true);
+          tourDash.next();
+          return;
+        },
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+  });
+  tourDash.addStep({
+    attachTo: { element: "#operationSelect", on: "top" },
+    text: t("pages.dashboard.tour.operationSelect"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        async action() {
+          await (showConfig.value = false);
+          tourDash.back();
+          return;
+        },
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    attachTo: { element: "#pickup-window", on: "top" },
+    text: t("pages.dashboard.tour.pickupWindow"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    attachTo: { element: "#delivery-window", on: "top" },
+    text: t("pages.dashboard.tour.deliveryWindow"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    attachTo: { element: "#save-operation", on: "right" },
+    text: t("pages.dashboard.tour.saveConfig"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    id: "pickups",
+    attachTo: { element: "#pickups", on: "top" },
+    text: t("pages.dashboard.tour.pickupLandmark"),
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    id: "deliveries",
+    attachTo: { element: "#deliveries", on: "top" },
+    text: t("pages.dashboard.tour.deliveryLandmark"),
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    id: "request",
+    attachTo: { element: "#create-request", on: "top" },
+    text: t("pages.dashboard.tour.sendRequest"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.complete,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.finish"),
+      },
+    ],
+  });
   tourDash.start();
 };
 
@@ -469,7 +620,10 @@ async function onSubmit(event: FormSubmitEvent<ConfigSchema>) {
   }
   savingConfig.value = false;
   showConfig.value = false;
-  tourDash.next();
+  if (selectedOperation.value) {
+    await tourDash.next();
+    await tourDash.show("pickups");
+  }
 }
 
 async function createRequest() {
@@ -551,6 +705,7 @@ const refreshAll = async () => {
           title: "Please select an operation on configuration",
           color: "yellow",
         });
+        startTour();
       }
     } else {
       toast.add({
@@ -867,7 +1022,6 @@ const socket = ref<Socket>();
 const { t } = useI18n();
 
 const tourDash = useShepherd({
-  useModalOverlay: true,
   defaultStepOptions: {
     cancelIcon: {
       enabled: true,
@@ -876,167 +1030,8 @@ const tourDash = useShepherd({
 });
 onMounted(async () => {
   await refreshAll();
-  tourDash.addStep({
-    id: "config",
-    attachTo: { element: "#operation-config", on: "top" },
-    text: t("pages.dashboard.tour.operationConfig"),
-    buttons: [
-      {
-        async action() {
-          await (showConfig.value = true);
-          tourDash.next();
-          return;
-        },
-        classes: "shepherd-button-primary",
-        text: "Next",
-      },
-    ],
-    floatingUIOptions: {
-      middleware: [offset(15)],
-    },
-  });
-  tourDash.addStep({
-    attachTo: { element: "#operationSelect", on: "top" },
-    text: t("pages.dashboard.tour.operationSelect"),
-    floatingUIOptions: {
-      middleware: [offset(15)],
-    },
-    buttons: [
-      {
-        async action() {
-          await (showConfig.value = false);
-          tourDash.back();
-          return;
-        },
-        classes: "shepherd-button-secondary",
-        text: "Back",
-      },
-      {
-        action: tourDash.next,
-        classes: "shepherd-button-primary",
-        text: "Next",
-      },
-    ],
-  });
-  tourDash.addStep({
-    attachTo: { element: "#pickup-window", on: "top" },
-    text: t("pages.dashboard.tour.pickupWindow"),
-    floatingUIOptions: {
-      middleware: [offset(15)],
-    },
-    buttons: [
-      {
-        action: tourDash.back,
-        classes: "shepherd-button-secondary",
-        text: "Back",
-      },
-      {
-        action: tourDash.next,
-        classes: "shepherd-button-primary",
-        text: "Next",
-      },
-    ],
-  });
-  tourDash.addStep({
-    attachTo: { element: "#delivery-window", on: "top" },
-    text: t("pages.dashboard.tour.deliveryWindow"),
-    floatingUIOptions: {
-      middleware: [offset(15)],
-    },
-    buttons: [
-      {
-        action: tourDash.back,
-        classes: "shepherd-button-secondary",
-        text: "Back",
-      },
-      {
-        async action() {
-          await (showConfig.value = false);
-          tourDash.next();
-          return;
-        },
-        classes: "shepherd-button-primary",
-        text: "Next",
-      },
-    ],
-  });
-  tourDash.addStep({
-    id: "pickups",
-    attachTo: { element: "#pickups", on: "top" },
-    text: t("pages.dashboard.tour.pickupLandmark"),
-    buttons: [
-      {
-        action: tourDash.back,
-        classes: "shepherd-button-secondary",
-        text: "Back",
-      },
-      {
-        action: tourDash.next,
-        classes: "shepherd-button-primary",
-        text: "Next",
-      },
-    ],
-  });
-  tourDash.addStep({
-    id: "deliveries",
-    attachTo: { element: "#deliveries", on: "top" },
-    text: t("pages.dashboard.tour.deliveryLandmark"),
-    buttons: [
-      {
-        action: tourDash.back,
-        classes: "shepherd-button-secondary",
-        text: "Back",
-      },
-      {
-        action: tourDash.next,
-        classes: "shepherd-button-primary",
-        text: "Next",
-      },
-    ],
-  });
-  tourDash.addStep({
-    id: "request",
-    attachTo: { element: "#create-request", on: "top" },
-    text: `<div class="tour-text-container">
-                    <div class="tour-text">
-                      <p>${t("pages.dashboard.tour.sendRequest")}</p>
-                    </div>
-                    <div class="image-container">
-                      <p>${t("pages.dashboard.tour.requestUrl")}:</p>
-                      <img 
-                          src=${imageUrl}
-                          class="imageStyle"
-                          frameBorder="0" 
-                          allowFullScreen
-                      >
-                      </img>
-                      <p>${t("pages.dashboard.tour.requestBody")}:</p>
-                      <img 
-                          src=${imageRequest}
-                          class="imageStyle"
-                          frameBorder="0" 
-                          allowFullScreen
-                      >
-                      </img>
-                    </div>
-                </div>`,
-    floatingUIOptions: {
-      middleware: [offset(15)],
-    },
-    buttons: [
-      {
-        action: tourDash.back,
-        classes: "shepherd-button-secondary",
-        text: "Back",
-      },
-      {
-        action: tourDash.next,
-        classes: "shepherd-button-primary",
-        text: "Finish",
-      },
-    ],
-  });
-  tourDash.start();
+
+  //tourDash.start();
 });
 
 onUnmounted(() => {
