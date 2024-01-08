@@ -1,6 +1,10 @@
 import { Credentials } from "@prisma/client";
 import { Axios } from "axios";
 
+/**
+ * The purpose of this file is to use Sara Services that is not available in the Sara SDK yet.
+ */
+
 export interface ISession {
   appId: string;
   appSecret: string;
@@ -11,6 +15,16 @@ export interface ISession {
   token_type?: string;
 }
 
+/**
+ * @description
+ * This class is used to create a session.
+ * It uses the authSara function to create the session.
+ * @example
+ * const session = new Session({
+ *  appId: "appId",
+ *  appSecret: "appSecret",
+ * });
+ */
 export class Session implements ISession {
   appId: string;
   appSecret: string;
@@ -46,7 +60,13 @@ export class Session implements ISession {
 }
 
 /**
- * function to post auth token at sara api
+ * @param session Session
+ * @returns Session
+ * @description
+ * This function is used to authentificate the session.
+ * It uses the axios to authentificate the session on aws cognito.
+ * Then it returns the session with the access_token and secret_token.
+ * It`s used by the auth function.
  */
 export async function authSara(session: ISession) {
   const config = useRuntimeConfig();
@@ -84,6 +104,15 @@ export async function authSara(session: ISession) {
   }
 }
 
+/**
+ * @param credentials Credentials
+ * @returns Session
+ * @description
+ * This function is used to authentificate the credentials.
+ * It uses the authSara function to authentificate the credentials.
+ * Then it returns the session with the access_token and secret_token.
+ * It`s used by the auth function.
+ */
 export async function auth(credentials: Credentials) {
   const session = new Session({
     appId: credentials.appId,

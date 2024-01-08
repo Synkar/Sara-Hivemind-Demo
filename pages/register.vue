@@ -3,7 +3,9 @@
     <UCard class="w-96 p-6 flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <font-awesome-icon icon="fa-solid fa-brain" class="text-4xl" />
-        <h1 class="text-xl">Hivemind Demo | Register</h1>
+        <h1 class="text-xl">
+          {{ $t("name") }} | {{ $t("pages.register.title") }}
+        </h1>
       </div>
       <UForm
         ref="form"
@@ -12,25 +14,41 @@
         :state="state"
         @submit="onSubmit"
       >
-        <UFormGroup label="Username" name="username">
-          <UInput placeholder="Type your username" v-model="state.username" />
+        <UFormGroup
+          :label="$t('pages.register.form.username.label')"
+          name="username"
+        >
+          <UInput
+            :placeholder="$t('pages.register.form.username.placeholder')"
+            v-model="state.username"
+          />
         </UFormGroup>
-        <UFormGroup label="Password" name="password">
+        <UFormGroup
+          :label="$t('pages.register.form.password.label')"
+          name="password"
+        >
           <UInput
             type="password"
-            placeholder="Type your password"
+            :placeholder="$t('pages.register.form.password.placeholder')"
             v-model="state.password"
           />
         </UFormGroup>
-        <UFormGroup label="Confirm Password" name="confirmPassword">
+        <UFormGroup
+          :label="$t('pages.register.form.passwordConfirmation.label')"
+          name="confirmPassword"
+        >
           <UInput
             type="password"
-            placeholder="Confirm your password"
+            :placeholder="
+              $t('pages.register.form.passwordConfirmation.placeholder')
+            "
             v-model="state.confirmPassword"
           />
         </UFormGroup>
         <div class="flex mt-2">
-          <UButton type="submit" block>Register</UButton>
+          <UButton type="submit" block>{{
+            $t("pages.register.form.submit")
+          }}</UButton>
         </div>
         <ULink
           to="/"
@@ -38,7 +56,7 @@
           active-class="text-primary"
           inactive-class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
         >
-          Click here to login
+          {{ $t("pages.register.form.links.login") }}
         </ULink>
       </UForm>
     </UCard>
@@ -54,12 +72,27 @@ const form = ref();
 const toast = useToast();
 const router = useRouter();
 
+const $t = useI18n().t;
+
 const schema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters long"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
+  username: z
+    .string()
+    .min(
+      3,
+      $t("errors.minLength").replace("{0}", "username").replace("{1}", "3")
+    ),
+  password: z
+    .string()
+    .min(
+      6,
+      $t("errors.minLength").replace("{0}", "password").replace("{1}", "6")
+    ),
   confirmPassword: z
     .string()
-    .min(6, "Password must be at least 6 characters long"),
+    .min(
+      6,
+      $t("errors.minLength").replace("{0}", "password").replace("{1}", "6")
+    ),
 });
 
 type Schema = z.output<typeof schema>;
@@ -76,7 +109,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
     form.value.setErrors([
       {
         path: "confirmPassword",
-        message: "Passwords do not match",
+        message: $t("pages.register.errors.passwordsNotMatch"),
       },
     ]);
     return;
@@ -89,7 +122,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
     if (request) {
       toast.add({
         color: "green",
-        title: "User created Successfully!",
+        title: $t("pages.register.success"),
         icon: "i-heroicons-circle-check",
       });
       router.push("/");

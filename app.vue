@@ -8,7 +8,7 @@
         <div>
           <UTooltip
             v-if="auth.logged"
-            text="Open User Configuration"
+            :text="$t('pages.app.tooltips.userConfig')"
             :shortcuts="['U']"
           >
             <UButton
@@ -21,12 +21,15 @@
               color="gray"
             />
           </UTooltip>
-          <UTooltip text="Toggle Color Mode" :shortcuts="[metaSymbol, 'K']">
+          <UTooltip
+            :text="$t('pages.app.tooltips.toogleColorMode')"
+            :shortcuts="[metaSymbol, 'K']"
+          >
             <ColorMode></ColorMode>
           </UTooltip>
           <UTooltip
             v-if="auth.logged"
-            text="Logout"
+            :text="$t('pages.app.tooltips.logout')"
             :shortcuts="[metaSymbol, 'L']"
           >
             <UButton
@@ -55,8 +58,8 @@
         <template #header>
           <div class="flex justify-between items-center">
             <div class="flex items-center">
-              <div>User Configuration</div>
-              <UTooltip text="Start tour">
+              <div>{{ $t("pages.app.modal.title") }}</div>
+              <UTooltip :text="$t('pages.app.modal.tour')">
                 <UButton
                   id="tour"
                   @click="startTour"
@@ -86,15 +89,23 @@
             id="user-app"
           >
             <div class="flex items-end justify-between">
-              <UFormGroup label="App Id" name="appId">
+              <UFormGroup
+                :label="$t('pages.app.modal.form.appId.label')"
+                name="appId"
+              >
                 <UInput
-                  placeholder="Type your App Id"
+                  :placeholder="$t('pages.app.modal.form.appId.placeholder')"
                   v-model="keyState.appId"
                 />
               </UFormGroup>
-              <UFormGroup label="App Secret" name="appSecret">
+              <UFormGroup
+                :label="$t('pages.app.modal.form.appSecret.label')"
+                name="appSecret"
+              >
                 <UInput
-                  placeholder="Type your App Secret"
+                  :placeholder="
+                    $t('pages.app.modal.form.appSecret.placeholder')
+                  "
                   v-model="keyState.appSecret"
                 />
               </UFormGroup>
@@ -107,7 +118,7 @@
             </div>
           </UForm>
           <div class="flex flex-col gap-4">
-            <h1>Your Apps:</h1>
+            <h1>{{ $t("pages.app.modal.yourApps") }}:</h1>
             <div class="flex flex-col">
               <div v-for="(k, i) in keys">
                 <div class="flex justify-between items-center w-full">
@@ -128,7 +139,11 @@
         </div>
         <template #footer>
           <div class="flex flex-col items-end gap-2" id="save">
-            <UFormGroup label="Selected Key" name="selectedKey" class="w-full">
+            <UFormGroup
+              :label="$t('pages.app.modal.selectedApp')"
+              name="selectedKey"
+              class="w-full"
+            >
               <USelectMenu
                 v-model="keySelected"
                 :options="keys"
@@ -142,7 +157,9 @@
                 </template>
               </USelectMenu>
             </UFormGroup>
-            <UButton @click="setSelectedKey">Save</UButton>
+            <UButton @click="setSelectedKey">{{
+              $t("pages.app.modal.submit")
+            }}</UButton>
           </div>
         </template>
       </UCard>
@@ -154,13 +171,14 @@
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui/dist/runtime/types";
 import type { Credentials } from "@prisma/client";
-import type { H3Error } from "h3";
 import { useShepherd } from "vue-shepherd";
 import { offset } from "@floating-ui/vue";
 
 const auth = useAuth();
 const toast = useToast();
 const router = useRouter();
+
+const $t = useI18n().t;
 
 const showUserConfig = ref(false);
 let keys = ref<Credentials[]>([]);
@@ -284,7 +302,7 @@ const deleteKey = async (appId: string) => {
   const deleted = await auth.deleteApp(appId);
   if (deleted) {
     toast.add({
-      title: "Key Deleted Successfully!",
+      title: $t("pages.app.modal.feedbacks.deleted"),
       icon: "i-heroicons-check-circle",
       color: "green",
     });
@@ -323,7 +341,7 @@ const logoutUser = async () => {
   });
   if (res) {
     toast.add({
-      title: "Logged Out Successfully!",
+      title: $t("pages.app.modal.feedbacks.logout"),
       icon: "i-heroicons-check-circle",
       color: "green",
     });
@@ -351,8 +369,7 @@ onMounted(async () => {
     } else {
       toast.add({
         icon: "i-heroicons-exclamation-circle",
-        title:
-          "You don't have any App Credentials Registered, click on user icon to set one",
+        title: t("pages.app.modal.feedbacks.noApps"),
         color: "yellow",
       });
       startTour();
