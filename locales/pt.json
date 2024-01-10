@@ -1,19 +1,229 @@
 {
-  "name": "Hivemind Demo",
+  "name": "Demonstração do Hivemind",
   "pages": {
+    "app": {
+      "tooltips": {
+        "userConfig": "Abrir Configuração do Usuário",
+        "toogleColorMode": "Alternar Modo de Cores",
+        "Logout": "Sair"
+      },
+      "modal": {
+        "title": "Configuração do Usuário",
+        "tour": "Iniciar Tour",
+        "form": {
+          "appId": {
+            "label": "App ID",
+            "placeholder": "Digite seu App ID"
+          },
+          "appSecret": {
+            "label": "App Secreto",
+            "placeholder": "Digite seu App Secreto"
+          }
+        },
+        "yourApps": "Seus Apps",
+        "selectedApp": "App Selecionado",
+        "submit": "Salvar",
+        "feedbacks": {
+          "deleted": "App Deletado com Sucesso!",
+          "logout": "Você foi desconectado com sucesso!",
+          "noApps": "Você não possui Credenciais de Aplicativo registradas. Clique no ícone de usuário para configurar uma"
+        }
+      }
+    },
     "login": {
-      "title": "Entrar",
+      "title": "Login",
       "form": {
-        "username": "Nome de usuário",
+        "username": "Nome de Usuário",
         "password": "Senha",
         "submit": "Entrar"
       },
       "errors": {
-        "invalid": "Nome de usuário ou senha inválidos"
+        "invalid": "Nome de Usuário ou Senha Incorretos!",
+        "unknown": "Algo Estranho Aconteceu!"
       },
       "links": {
         "register": "Clique aqui para se registrar"
       }
+    },
+    "register": {
+      "title": "Registrar",
+      "form": {
+        "username": {
+          "label": "Nome de Usuário",
+          "placeholder": "Nome de Usuário"
+        },
+        "password": {
+          "label": "Senha",
+          "placeholder": "Senha"
+        },
+        "passwordConfirmation": {
+          "label": "Confirmação de Senha",
+          "placeholder": "Confirmação de Senha"
+        },
+        "submit": "Registrar",
+        "links": {
+          "login": "Clique aqui para entrar"
+        }
+      },
+      "errors": {
+        "passwordsNotMatch": "Senhas não coincidem!"
+      },
+      "success": "Usuário registrado com sucesso!",
+      "links": {
+        "login": "Clique aqui para entrar"
+      }
+    },
+    "dashboard": {
+      "title": "Painel",
+      "subtitle": "Demonstração de Coleta e Entrega",
+      "buttons": {
+        "logout": "Sair",
+        "userConfig": "Configuração do Usuário",
+        "clearLogs": "Limpar Logs",
+        "openOperation": "Abrir Configuração de Operação",
+        "tour": "Iniciar Tour"
+      },
+      "pickup": "Coleta",
+      "delivery": "Entrega",
+      "floor": "Andar",
+      "select": "Selecionar",
+      "logs": "Logs",
+      "space": "Barra de Espaço",
+      "requests": "Requisições",
+      "landmark": {
+        "loading": "Carregando Pontos de Referência..."
+      },
+      "operation": {
+        "request:": "Enviando Requisição..."
+      },
+      "errors": {
+        "selectBoth": "Por favor, selecione tanto o ponto de coleta quanto o ponto de entrega para enviar uma requisição!",
+        "noOperation": "Por favor, selecione uma operação na configuração",
+        "noCredentials": "Você não possui Credenciais de Aplicativo registradas. Clique no ícone de usuário para configurar uma"
+      },
+      "feedbacks": {
+        "logsConnecting": "Conectando à Operação",
+        "unlocked": "Contêiner Destravado",
+        "request": {
+          "title": "Requisição",
+          "assigned": "Atribuída",
+          "running": "está em Andamento",
+          "startedStage": "Iniciou o Estágio",
+          "finishedStage": "Concluiu o Estágio",
+          "locked": "Travado",
+          "unlock": "Destravar Contêiner",
+          "cancelled": "Cancelada, motivo:",
+          "finished": "Concluída com Sucesso",
+          "wakeup": "Ativação do Robô",
+          "shutdown": "Desligamento do Robô",
+          "unknown": "DESCONHECIDO",
+          "log": "LOG"
+        }
+      },
+      "modal": {
+        "config": {
+          "title": "Configuração do Hivemind",
+          "form": {
+            "operation": {
+              "label": "Operação",
+              "placeholder": "Escolha uma Operação"
+            },
+            "pickupWindow": {
+              "title": "Configuração da Janela de Coleta",
+              "upper": {
+                "label": "Tempo Superior da Janela de Coleta",
+                "placeholder": "Tempo Superior da Janela de Coleta"
+              },
+              "lower": {
+                "label": "Tempo Inferior da Janela de Coleta",
+                "placeholder": "Tempo Inferior da Janela de Coleta"
+              }
+            },
+            "deliveryWindow": {
+              "title": "Configuração da Janela de Entrega",
+              "upper": {
+                "label": "Tempo Superior da Janela de Entrega",
+                "placeholder": "Tempo Superior da Janela de Entrega"
+              },
+              "lower": {
+                "label": "Tempo Inferior da Janela de Entrega",
+                "placeholder": "Tempo Inferior da Janela de Entrega"
+              }
+            },
+            "submit": "Salvar",
+            "saving": "Salvando..."
+          }
+        }
+      },
+      "tour": {
+        "operationConfig": "Clique aqui para configurar sua Operação.",
+        "operationSelect": "Selecione sua Operação aqui. Isso definirá o operationId usado nas requisições.",
+        "pickupWindow": "Altere a Janela de Coleta aqui.",
+        "deliveryWindow": "Altere a Janela de Entrega aqui.",
+        "pickupLandmark": "Selecione um ponto de coleta aqui.",
+        "deliveryLandmark": "Selecione um ponto de entrega aqui.",
+        "sendRequest": "Clique aqui para enviar a requisição.",
+        "requestUrl": "URL da Requisição",
+        "requestBody": "Corpo da Requisição",
+        "appCredentials": "Defina suas Credenciais de Aplicativo aqui. As Credenciais de Aplicativo podem ser obtidas em sua conta no console SARA.",
+        "saveApp": "Selecione e salve suas Credenciais de Aplicativo.",
+        "saveConfig": "Salve a configuração.",
+        "buttons": {
+          "next": "Próximo",
+          "back": "Voltar",
+          "finish": "Concluir"
+        }
+      }
+    },
+    "userConfig": {
+      "tour": {
+        "config": "Clique aqui para registrar credenciais de aplicativo.",
+        "appCredentials": "Defina suas Credenciais de Aplicativo aqui. As Credenciais de Aplicativo podem ser obtidas em sua conta no console SARA.",
+        "saveApp": "Selecione e salve suas Credenciais de Aplicativo.",
+        "buttons": {
+          "next": "Próximo",
+          "back": "Voltar",
+          "finish": "Concluir"
+        }
+      }
     }
+  },
+  "components": {
+    "table": {
+      "rowsPerPage": "Linhas por página",
+      "statusFilter": "Status",
+      "columns": "Colunas",
+      "resetFilters": "Redefinir",
+      "pagination": {
+        "showing": "Mostrando",
+        "to": "a",
+        "of": "de",
+        "results": "resultados"
+      },
+      "fields": {
+        "uuid": "UUID",
+        "externalId": "ID Externo",
+        "robot": "Robô",
+        "status": "Status",
+        "actions": "Ações"
+      },
+      "status": {
+        "queued": "Em Espera",
+        "assigned": "Atribuída",
+        "running": "Em Andamento",
+        "finished": "Concluída",
+        "cancelled": "Cancelada",
+        "locked": "Travada",
+        "unknown": "Desconhecido"
+      },
+      "feedbacks": {
+        "cancel": "Requisição Cancelada com Sucesso!",
+        "unlock": "Contêiner Destravado com Sucesso!"
+      }
+    }
+  },
+  "errors": {
+    "minLength": "{0} deve ter pelo menos {1} caracteres",
+    "unknown": "Algo Estranho Aconteceu!"
   }
 }

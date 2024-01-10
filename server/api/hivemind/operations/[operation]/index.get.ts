@@ -1,6 +1,9 @@
 import type { OperationsRetrieve } from "~/models/Operation";
 import { OperationInstance } from "~/server/utils/sarasdk";
 
+/**
+ * function to retrieve an operation
+ */
 export default defineEventHandler(async (event) => {
   const operation = getRouterParam(event, "operation");
   if (operation) {

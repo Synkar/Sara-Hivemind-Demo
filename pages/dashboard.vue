@@ -2,7 +2,22 @@
   <div class="flex flex-col justify-center items-center container mx-auto px-4">
     <div class="flex flex-col gap-4 w-full mt-4">
       <div class="flex justify-between items-center">
-        <h1 class="text-lg text-left">Pickup and Delivery DEMO</h1>
+        <div class="flex">
+          <h1 class="text-lg text-left">
+            {{ $t("pages.dashboard.subtitle") }}
+          </h1>
+          <UTooltip :text="$t('pages.dashboard.buttons.tour')">
+            <UButton
+              id="tour"
+              @click="startTour"
+              icon="i-heroicons-information-circle"
+              size="sm"
+              square
+              variant="link"
+              color="gray"
+            />
+          </UTooltip>
+        </div>
         <div>
           <!--
           <UTooltip text="Refresh Landmarks" :shortcuts="['R']">
@@ -16,7 +31,10 @@
             />
           </UTooltip>
           -->
-          <UTooltip text="Clear Logs" :shortcuts="['C']">
+          <UTooltip
+            :text="$t('pages.dashboard.buttons.clearLogs')"
+            :shortcuts="['C']"
+          >
             <UButton
               @click="clearLogs"
               icon="i-heroicons-minus-circle"
@@ -26,8 +44,12 @@
               color="gray"
             />
           </UTooltip>
-          <UTooltip text="Open Operation Configuration" :shortcuts="['G']">
+          <UTooltip
+            :text="$t('pages.dashboard.buttons.openOperation')"
+            :shortcuts="['G']"
+          >
             <UButton
+              id="operation-config"
               @click="toggleConfig"
               icon="i-heroicons-cog-6-tooth"
               size="xl"
@@ -39,12 +61,12 @@
         </div>
       </div>
       <div class="flex items-start">
-        <div class="flex flex-col whitespace-nowrap gap-2 w-40">
-          <span class="w-40">Pickup</span>
+        <div class="flex flex-col whitespace-nowrap gap-2 w-40" id="pickups">
+          <span class="w-40">{{ $t("pages.dashboard.pickup") }}</span>
           <!--<span v-if="pf && pf.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
             v-for="(p, i) in pickups"
-            :text="'Select ' + p.name"
+            :text="$t('pages.dashboard.select') + ' ' + p.name"
             :shortcuts="i != 9 ? [(i + 1).toString()] : ['0']"
             class="w-40"
           >
@@ -59,7 +81,7 @@
                 <UBadge
                   color="white"
                   variant="solid"
-                  :label="'Floor ' + p.floor"
+                  :label="$t('pages.dashboard.floor') + ' ' + p.floor"
                 ></UBadge>
               </template>
             </UButton>
@@ -79,12 +101,12 @@
                 },
               },
             }"
-            :prevButton="null"
-            :nextButton="null"
+            :prevButton="undefined"
+            :nextButton="undefined"
           />
         </div>
         <div class="flex flex-col text-center w-full px-4 justify-center gap-2">
-          <div>Logs</div>
+          <div>{{ $t("pages.dashboard.logs") }}</div>
           <UCard
             class="text-left"
             :ui="{ body: { padding: 'px-1 py-1 sm:p-1' } }"
@@ -95,12 +117,14 @@
             ></div
           ></UCard>
         </div>
-        <div class="flex flex-col whitespace-nowrap gap-2 w-40">
-          <span class="text-right w-40">Delivery</span>
+        <div class="flex flex-col whitespace-nowrap gap-2 w-40" id="deliveries">
+          <span class="text-right w-40">{{
+            $t("pages.dashboard.delivery")
+          }}</span>
           <!--<span v-if="df && df.length > 0">Floor: {{ j }}</span>-->
           <UTooltip
             v-for="(d, i) in deliveries"
-            :text="'Select ' + d.name"
+            :text="$t('pages.dashboard.select') + ' ' + d.name"
             :shortcuts="
               i != 9 ? [metaSymbol, (i + 1).toString()] : [metaSymbol, '0']
             "
@@ -117,7 +141,7 @@
                 <UBadge
                   color="white"
                   variant="solid"
-                  :label="'Floor ' + d.floor"
+                  :label="$t('pages.dashboard.floor') + ' ' + d.floor"
                 ></UBadge> </template
             ></UButton>
           </UTooltip>
@@ -136,14 +160,16 @@
                 },
               },
             }"
-            :prevButton="null"
-            :nextButton="null"
+            :prevButton="undefined"
+            :nextButton="undefined"
           />
         </div>
       </div>
-      <div class="flex">
+      <div class="flex" id="create-request">
         <UButton block color="gray" @click="createRequest" label="Send Request"
-          ><template #trailing><UKbd>Space</UKbd></template></UButton
+          ><template #trailing
+            ><UKbd>{{ $t("pages.dashboard.space") }}</UKbd></template
+          ></UButton
         >
       </div>
       <div
@@ -151,14 +177,14 @@
         class="flex flex-col justify-center items-center"
       >
         <UProgress animation="carousel" class="mb-1" />
-        Loading Landmarks...
+        {{ $t("pages.dashboard.landmark.loading") }}
       </div>
       <div
         v-show="sendingRequest"
         class="flex flex-col justify-center items-center"
       >
         <UProgress animation="carousel" class="mb-1" />
-        Sending Request...
+        {{ $t("pages.dashboard.operation.request") }}
       </div>
     </div>
     <UAccordion
@@ -208,7 +234,7 @@
       >
         <template #header>
           <div class="flex justify-between items-center">
-            <div>Hivemind Configuration</div>
+            <div>{{ $t("pages.dashboard.modal.config.title") }}</div>
             <UButton
               @click="toggleConfig"
               icon="i-heroicons-x-mark"
@@ -225,10 +251,18 @@
           :state="configState"
           @submit="onSubmit"
         >
-          <UDivider label="Operation" />
-          <UFormGroup label="Operation" name="operation">
+          <UDivider
+            :label="$t('pages.dashboard.modal.config.form.operation.label')"
+          />
+          <UFormGroup
+            :label="$t('pages.dashboard.modal.config.form.operation.label')"
+            name="operation"
+            id="operationSelect"
+          >
             <USelectMenu
-              placeholder="Choose the Operation"
+              :placeholder="
+                $t('pages.dashboard.modal.config.form.operation.placeholder')
+              "
               v-model="configState.operation"
               :options="operations"
               value-attribute="uuid"
@@ -238,44 +272,94 @@
                 <span v-if="currentOperation">{{
                   currentOperation?.name
                 }}</span>
-                <span v-else>Choose the Operation</span>
+                <span v-else>{{
+                  $t("pages.dashboard.modal.config.form.operation.placeholder")
+                }}</span>
               </template>
             </USelectMenu>
           </UFormGroup>
-          <UDivider label="Pickup Window Configuration" />
-          <UFormGroup label="Pickup Window Upper" name="pickup-window-upper">
-            <UInput
-              placeholder="Pickup Window Upper Time"
-              v-model="configState.pickup.window.upper"
-            ></UInput>
-          </UFormGroup>
-          <UFormGroup label="Pickup Window Lower" name="pickup-window-lower">
-            <UInput
-              placeholder="Pickup Window Lower Time"
-              v-model="configState.pickup.window.lower"
-            ></UInput>
-          </UFormGroup>
-          <UDivider label="Delivery Window Configuration" />
-          <UFormGroup
-            label="Delivery Window Upper"
-            name="delivery-window-upper"
-          >
-            <UInput
-              placeholder="Delivery Window Upper Time"
-              v-model="configState.delivery.window.upper"
-            ></UInput>
-          </UFormGroup>
-          <UFormGroup
-            label="Delivery Window Lower"
-            name="delivery-window-lower"
-          >
-            <UInput
-              placeholder="Delivery Window Lower Time"
-              v-model="configState.delivery.window.lower"
-            ></UInput>
-          </UFormGroup>
-          <div class="flex justify-end">
-            <UButton type="submit">Save</UButton>
+          <div id="pickup-window">
+            <UDivider
+              :label="
+                $t('pages.dashboard.modal.config.form.pickupWindow.title')
+              "
+            />
+            <UFormGroup
+              :label="
+                $t('pages.dashboard.modal.config.form.pickupWindow.upper.label')
+              "
+              name="pickup-window-upper"
+            >
+              <UInput
+                :placeholder="
+                  $t(
+                    'pages.dashboard.modal.config.form.pickupWindow.upper.placeholder'
+                  )
+                "
+                v-model="configState.pickup.window.upper"
+              ></UInput>
+            </UFormGroup>
+            <UFormGroup
+              :label="
+                $t('pages.dashboard.modal.config.form.pickupWindow.lower.label')
+              "
+              name="pickup-window-lower"
+            >
+              <UInput
+                :placeholder="
+                  $t(
+                    'pages.dashboard.modal.config.form.pickupWindow.lower.placeholder'
+                  )
+                "
+                v-model="configState.pickup.window.lower"
+              ></UInput>
+            </UFormGroup>
+          </div>
+          <div id="delivery-window">
+            <UDivider
+              :label="
+                $t('pages.dashboard.modal.config.form.deliveryWindow.title')
+              "
+            />
+            <UFormGroup
+              :label="
+                $t(
+                  'pages.dashboard.modal.config.form.deliveryWindow.upper.label'
+                )
+              "
+              name="delivery-window-upper"
+            >
+              <UInput
+                :placeholder="
+                  $t(
+                    'pages.dashboard.modal.config.form.deliveryWindow.upper.placeholder'
+                  )
+                "
+                v-model="configState.delivery.window.upper"
+              ></UInput>
+            </UFormGroup>
+            <UFormGroup
+              :label="
+                $t(
+                  'pages.dashboard.modal.config.form.deliveryWindow.lower.label'
+                )
+              "
+              name="delivery-window-lower"
+            >
+              <UInput
+                :placeholder="
+                  $t(
+                    'pages.dashboard.modal.config.form.deliveryWindow.lower.placeholder'
+                  )
+                "
+                v-model="configState.delivery.window.lower"
+              ></UInput>
+            </UFormGroup>
+          </div>
+          <div class="flex justify-end" id="save-operation">
+            <UButton type="submit">{{
+              $t("pages.dashboard.modal.config.form.submit")
+            }}</UButton>
           </div>
         </UForm>
         <template #footer>
@@ -284,7 +368,7 @@
             class="flex flex-col justify-center items-center"
           >
             <UProgress animation="carousel" class="mb-1" />
-            Saving...
+            {{ $t("pages.dashboard.modal.config.form.saving") }}
           </div>
         </template>
       </UCard>
@@ -308,10 +392,16 @@ import type {
 } from "~/models/Logs";
 import { z } from "zod";
 import { Socket, io } from "socket.io-client";
+import { useShepherd } from "vue-shepherd";
+import { offset } from "@floating-ui/vue";
+import imageRequest from "~/assets/images/request.png";
+import imageUrl from "~/assets/images/url.png";
 
 definePageMeta({
   middleware: ["auth"],
 });
+
+const $t = useI18n().t;
 
 const auth = useAuth();
 const hivemind = useHivemind();
@@ -386,16 +476,179 @@ const currentOperation = computed(() => {
 const selectedPickup = ref<string>();
 const selectedDelivery = ref<string>();
 
-function selectPickup(uuid: string) {
-  selectedPickup.value = uuid;
+async function selectPickup(uuid: string) {
+  await (selectedPickup.value = uuid);
+  if (tourDash.isActive() && tourDash.getCurrentStep().id === "pickups")
+    tourDash.next();
 }
 
-function selectDelivery(uuid: string) {
-  selectedDelivery.value = uuid;
+async function selectDelivery(uuid: string) {
+  await (selectedDelivery.value = uuid);
+  if (tourDash.isActive() && tourDash.getCurrentStep().id === "deliveries")
+    tourDash.next();
 }
 
-const toggleConfig = () => {
-  showConfig.value = !showConfig.value;
+const toggleConfig = async () => {
+  await (showConfig.value = !showConfig.value);
+
+  if (tourDash.isActive() && tourDash.getCurrentStep().id === "config")
+    tourDash.next();
+
+  if (!selectedOperation.value && showConfig.value) {
+    tourDash.show(1);
+  }
+};
+
+const startTour = () => {
+  tourDash.addStep({
+    id: "config",
+    attachTo: { element: "#operation-config", on: "top" },
+    text: t("pages.dashboard.tour.operationConfig"),
+    buttons: [
+      {
+        async action() {
+          await (showConfig.value = true);
+          tourDash.next();
+          return;
+        },
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+  });
+  tourDash.addStep({
+    attachTo: { element: "#operationSelect", on: "top" },
+    text: t("pages.dashboard.tour.operationSelect"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        async action() {
+          await (showConfig.value = false);
+          tourDash.back();
+          return;
+        },
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    attachTo: { element: "#pickup-window", on: "top" },
+    text: t("pages.dashboard.tour.pickupWindow"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    attachTo: { element: "#delivery-window", on: "top" },
+    text: t("pages.dashboard.tour.deliveryWindow"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    attachTo: { element: "#save-operation", on: "right" },
+    text: t("pages.dashboard.tour.saveConfig"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    id: "pickups",
+    attachTo: { element: "#pickups", on: "top" },
+    text: t("pages.dashboard.tour.pickupLandmark"),
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    id: "deliveries",
+    attachTo: { element: "#deliveries", on: "top" },
+    text: t("pages.dashboard.tour.deliveryLandmark"),
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.next,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.next"),
+      },
+    ],
+  });
+  tourDash.addStep({
+    id: "request",
+    attachTo: { element: "#create-request", on: "top" },
+    text: t("pages.dashboard.tour.sendRequest"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tourDash.back,
+        classes: "shepherd-button-secondary",
+        text: t("pages.dashboard.tour.buttons.back"),
+      },
+      {
+        action: tourDash.complete,
+        classes: "shepherd-button-primary",
+        text: t("pages.dashboard.tour.buttons.finish"),
+      },
+    ],
+  });
+  tourDash.start();
 };
 
 const configState = reactive<ConfigSchema>({
@@ -435,6 +688,10 @@ async function onSubmit(event: FormSubmitEvent<ConfigSchema>) {
   }
   savingConfig.value = false;
   showConfig.value = false;
+  if (selectedOperation.value) {
+    await tourDash.next();
+    await tourDash.show("pickups");
+  }
 }
 
 async function createRequest() {
@@ -467,8 +724,7 @@ async function createRequest() {
   } else {
     toast.add({
       icon: "i-heroicons-exclamation-circle",
-      title:
-        "Please select both pickup and delivery landmark to send a request!",
+      title: $t("pages.dashboard.errors.selectBoth"),
       color: "red",
     });
   }
@@ -513,15 +769,15 @@ const refreshAll = async () => {
       } else {
         toast.add({
           icon: "i-heroicons-exclamation-circle",
-          title: "Please select an operation on configuration",
+          title: $t("pages.dashboard.errors.noOperation"),
           color: "yellow",
         });
+        startTour();
       }
     } else {
       toast.add({
         icon: "i-heroicons-exclamation-circle",
-        title:
-          "You don't have any App Credentials Registered, click on user icon to set one",
+        title: $t("pages.dashboard.errors.noCredentials"),
         color: "red",
       });
     }
@@ -541,7 +797,9 @@ const connectSocket = () => {
   });
 
   socket.value.on("connect", () => {
-    log.value += `<p>[LOG]: Connecting to Operation: ${hivemind.operation?.name}</p>`;
+    log.value += `<p>[${$t("pages.dashboard.feedbacks.request.log")}]: ${$t(
+      "pages.dashboard.feedbacks.logsConnecting"
+    )}: ${hivemind.operation?.name}</p>`;
   });
 
   socket.value.on("message", async (socketMsg: SocketIO) => {
@@ -763,13 +1021,13 @@ const unlockContainer = async (operation: string, requestUuid: string) => {
   const request = await hivemind.continueRequest(operation, requestUuid);
   if (request) {
     toast.add({
-      title: "Container Unlocked",
+      title: $t("pages.dashboard.feedbacks.unlocked"),
       icon: "i-heroicons-check-circle",
       color: "green",
     });
   } else {
     toast.add({
-      title: "Something Strange Happened!",
+      title: $t("errors.unknown"),
       icon: "i-heroicons-exclamation-circle",
       color: "red",
     });
@@ -782,44 +1040,82 @@ const generateMessage = async (message: SocketIO) => {
     switch (message.action) {
       case "REQUEST_ASSIGNED": {
         const data = message.data.data as RequestAssignedData;
-        return `[${robotName}]: Request #${data.externalRequestId} Assigned`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.assigned"
+        )}`;
       }
       case "REQUEST_RUNNING": {
         const data = message.data.data as RequestRunningData;
-        return `[${robotName}]: Request #${data.externalRequestId} is Running`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.running"
+        )}`;
       }
       case "REQUEST_STAGE_STARTED": {
         const data = message.data.data as RequestStageStartedData;
-        return `[${robotName}]: (${data.nodeType}) Request #${data.externalRequestId} Started Stage ${data.requestStage}`;
+        return `[${robotName}]: (${data.nodeType}) ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.startedStage"
+        )} ${data.requestStage}`;
       }
       case "REQUEST_STAGE_FINISHED": {
         const data = message.data.data as RequestStageFinishedData;
-        return `[${robotName}]: (${data.nodeType}) Request #${data.externalRequestId} Finished Stage ${data.requestStage}`;
+        return `[${robotName}]: (${data.nodeType}) ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.finishedStage"
+        )} ${data.requestStage}`;
       }
       case "REQUEST_LOCKED": {
         const data = message.data.data as RequestLockedData;
-        const text = `[${robotName}]: Request #${data.externalRequestId} Locked <button title="Unlock Container" id="${data.requestId}" type="button" class="unlock-container-button focus:outline-none focus-visible:outline-0 disabled:cursor-not-allowed disabled:opacity-75 flex-shrink-0 font-medium rounded-md text-base gap-x-2.5 p-2.5 text-blue-500 hover:text-blue-600 disabled:text-blue-500 dark:text-blue-400 dark:hover:text-blue-500 dark:disabled:text-blue-400 underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 inline-flex items-center"><span class="i-heroicons-lock-open flex-shrink-0 h-6 w-6" aria-hidden="true"></span></button>`;
+        const text = `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.locked"
+        )} <button title="${$t(
+          "pages.dashboard.feedbacks.request.unlock"
+        )}" id="${
+          data.requestId
+        }" type="button" class="unlock-container-button focus:outline-none focus-visible:outline-0 disabled:cursor-not-allowed disabled:opacity-75 flex-shrink-0 font-medium rounded-md text-base gap-x-2.5 p-2.5 text-blue-500 hover:text-blue-600 disabled:text-blue-500 dark:text-blue-400 dark:hover:text-blue-500 dark:disabled:text-blue-400 underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 inline-flex items-center"><span class="i-heroicons-lock-open flex-shrink-0 h-6 w-6" aria-hidden="true"></span></button>`;
         return text;
       }
       case "REQUEST_CANCELLED": {
         const data = message.data.data as RequestCancelledData;
-        return `[${robotName}]: Request #${data.externalRequestId} Cancelled, reason: ${data.cancelledReason}`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.cancelled"
+        )} ${data.cancelledReason}`;
       }
       case "REQUEST_FINISHED": {
         const data = message.data.data as RequestFinishedData;
-        return `[${robotName}]: Request #${data.externalRequestId} Finished Successfully`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.title"
+        )} #${data.externalRequestId} ${$t(
+          "pages.dashboard.feedbacks.request.finished"
+        )}`;
       }
       case "ROBOT_WAKEUP": {
-        return `[${robotName}]: Robot Wakeup`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.wakeup"
+        )}`;
       }
       case "ROBOT_SHUTDOWN": {
-        return `[${robotName}]: Robot Shutdown`;
+        return `[${robotName}]: ${$t(
+          "pages.dashboard.feedbacks.request.shutdown"
+        )}`;
       }
       default:
-        return `[UNKNOWN]: ${JSON.stringify(message.data)}`;
+        return `[${$t(
+          "pages.dashboard.feedbacks.request.unknown"
+        )}]: ${JSON.stringify(message.data)}`;
     }
   } else {
-    return `[LOG]: ${message.data}`;
+    return `[${$t("pages.dashboard.feedbacks.request.log")}]: ${message.data}`;
   }
 };
 
@@ -829,8 +1125,18 @@ const messages = ref<SocketIO[]>([]);
 
 const socket = ref<Socket>();
 
+const { t } = useI18n();
+
+const tourDash = useShepherd({
+  defaultStepOptions: {
+    cancelIcon: {
+      enabled: true,
+    },
+  },
+});
 onMounted(async () => {
   await refreshAll();
+  //tourDash.start();
 });
 
 onUnmounted(() => {
@@ -839,7 +1145,7 @@ onUnmounted(() => {
 
 const tableAccordion = [
   {
-    label: "Requests",
+    label: $t("pages.dashboard.requests"),
     icon: "i-heroicons-arrows-right-left",
     slot: "requests",
   },
@@ -859,5 +1165,10 @@ watch(pagePickup, (oldValue, newValue) => {
 });
 watch(pageDelivery, (oldValue, newValue) => {
   refreshDeliveries();
+});
+watch(showConfig, (newValue) => {
+  if (newValue === false) {
+    tourDash.complete();
+  }
 });
 </script>

@@ -8,10 +8,11 @@
         <div>
           <UTooltip
             v-if="auth.logged"
-            text="Open User Configuration"
+            :text="$t('pages.app.tooltips.userConfig')"
             :shortcuts="['U']"
           >
             <UButton
+              id="user-config"
               @click="toggleUserConfig"
               icon="i-heroicons-user"
               size="xl"
@@ -20,12 +21,15 @@
               color="gray"
             />
           </UTooltip>
-          <UTooltip text="Toggle Color Mode" :shortcuts="[metaSymbol, 'K']">
+          <UTooltip
+            :text="$t('pages.app.tooltips.toogleColorMode')"
+            :shortcuts="[metaSymbol, 'K']"
+          >
             <ColorMode></ColorMode>
           </UTooltip>
           <UTooltip
             v-if="auth.logged"
-            text="Logout"
+            :text="$t('pages.app.tooltips.logout')"
             :shortcuts="[metaSymbol, 'L']"
           >
             <UButton
@@ -53,7 +57,20 @@
       >
         <template #header>
           <div class="flex justify-between items-center">
-            <div>User Configuration</div>
+            <div class="flex items-center">
+              <div>{{ $t("pages.app.modal.title") }}</div>
+              <UTooltip :text="$t('pages.app.modal.tour')">
+                <UButton
+                  id="tour"
+                  @click="startTour"
+                  icon="i-heroicons-information-circle"
+                  size="sm"
+                  square
+                  variant="link"
+                  color="gray"
+                />
+              </UTooltip>
+            </div>
             <UButton
               @click="toggleUserConfig"
               icon="i-heroicons-x-mark"
@@ -65,17 +82,30 @@
           </div>
         </template>
         <div class="flex flex-col gap-4">
-          <UForm :schema="userKeySchema" :state="keyState" @submit="onSubmit">
+          <UForm
+            :schema="userKeySchema"
+            :state="keyState"
+            @submit="onSubmit"
+            id="user-app"
+          >
             <div class="flex items-end justify-between">
-              <UFormGroup label="App Id" name="appId">
+              <UFormGroup
+                :label="$t('pages.app.modal.form.appId.label')"
+                name="appId"
+              >
                 <UInput
-                  placeholder="Type your App Id"
+                  :placeholder="$t('pages.app.modal.form.appId.placeholder')"
                   v-model="keyState.appId"
                 />
               </UFormGroup>
-              <UFormGroup label="App Secret" name="appSecret">
+              <UFormGroup
+                :label="$t('pages.app.modal.form.appSecret.label')"
+                name="appSecret"
+              >
                 <UInput
-                  placeholder="Type your App Secret"
+                  :placeholder="
+                    $t('pages.app.modal.form.appSecret.placeholder')
+                  "
                   v-model="keyState.appSecret"
                 />
               </UFormGroup>
@@ -88,7 +118,7 @@
             </div>
           </UForm>
           <div class="flex flex-col gap-4">
-            <h1>Your Apps:</h1>
+            <h1>{{ $t("pages.app.modal.yourApps") }}:</h1>
             <div class="flex flex-col">
               <div v-for="(k, i) in keys">
                 <div class="flex justify-between items-center w-full">
@@ -108,8 +138,12 @@
           </div>
         </div>
         <template #footer>
-          <div class="flex flex-col items-end gap-2">
-            <UFormGroup label="Selected Key" name="selectedKey" class="w-full">
+          <div class="flex flex-col items-end gap-2" id="save">
+            <UFormGroup
+              :label="$t('pages.app.modal.selectedApp')"
+              name="selectedKey"
+              class="w-full"
+            >
               <USelectMenu
                 v-model="keySelected"
                 :options="keys"
@@ -123,7 +157,9 @@
                 </template>
               </USelectMenu>
             </UFormGroup>
-            <UButton @click="setSelectedKey">Save</UButton>
+            <UButton @click="setSelectedKey">{{
+              $t("pages.app.modal.submit")
+            }}</UButton>
           </div>
         </template>
       </UCard>
@@ -135,10 +171,14 @@
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui/dist/runtime/types";
 import type { Credentials } from "@prisma/client";
+import { useShepherd } from "vue-shepherd";
+import { offset } from "@floating-ui/vue";
 
 const auth = useAuth();
 const toast = useToast();
 const router = useRouter();
+
+const $t = useI18n().t;
 
 const showUserConfig = ref(false);
 let keys = ref<Credentials[]>([]);
@@ -168,7 +208,66 @@ async function onSubmit(event: FormSubmitEvent<UserKeySchema>) {
   keys.value = auth.apps as unknown as Credentials[];
   await auth.getSelectedApp();
   keySelected.value = auth.appSelected;
+  if (tour.isActive()) tour.next();
 }
+
+const startTour = () => {
+  tour.addStep({
+    attachTo: { element: "#user-config", on: "bottom" },
+    id: "user-config",
+    text: t("pages.userConfig.tour.config"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        async action() {
+          await (showUserConfig.value = true);
+          tour.next();
+          return;
+        },
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tour.addStep({
+    attachTo: { element: "#user-app", on: "top" },
+    id: "user-app",
+    text: t("pages.userConfig.tour.appCredentials"),
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    buttons: [
+      {
+        action: tour.next,
+        classes: "shepherd-button-primary",
+        text: "Next",
+      },
+    ],
+  });
+  tour.addStep({
+    floatingUIOptions: {
+      middleware: [offset(15)],
+    },
+    attachTo: { element: "#save", on: "top" },
+    text: t("pages.userConfig.tour.saveApp"),
+    buttons: [
+      {
+        action: tour.back,
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action: tour.complete,
+        classes: "shepherd-button-primary",
+        text: "Finish",
+      },
+    ],
+  });
+  if (!showUserConfig.value) tour.start();
+  else tour.show("user-app");
+};
 
 async function setSelectedKey() {
   if (keySelected && keySelected.value) {
@@ -181,17 +280,29 @@ async function setSelectedKey() {
     }
   }
   showUserConfig.value = false;
+  tour.complete();
 }
 
-const toggleUserConfig = () => {
-  showUserConfig.value = !showUserConfig.value;
+const toggleUserConfig = async () => {
+  await (showUserConfig.value = !showUserConfig.value);
+
+  if (auth.apps && auth.apps.length <= 0) {
+    tour.start();
+  }
+  if (
+    tour.isActive() &&
+    tour.getCurrentStep().id === "user-config" &&
+    showUserConfig.value
+  ) {
+    tour.next();
+  }
 };
 
 const deleteKey = async (appId: string) => {
   const deleted = await auth.deleteApp(appId);
   if (deleted) {
     toast.add({
-      title: "Key Deleted Successfully!",
+      title: $t("pages.app.modal.feedbacks.deleted"),
       icon: "i-heroicons-check-circle",
       color: "green",
     });
@@ -230,7 +341,7 @@ const logoutUser = async () => {
   });
   if (res) {
     toast.add({
-      title: "Logged Out Successfully!",
+      title: $t("pages.app.modal.feedbacks.logout"),
       icon: "i-heroicons-check-circle",
       color: "green",
     });
@@ -239,6 +350,15 @@ const logoutUser = async () => {
   }
 };
 
+const { t } = useI18n();
+
+const tour = useShepherd({
+  defaultStepOptions: {
+    cancelIcon: {
+      enabled: true,
+    },
+  },
+});
 onMounted(async () => {
   if (auth.logged) {
     await auth.listApps();
@@ -249,10 +369,10 @@ onMounted(async () => {
     } else {
       toast.add({
         icon: "i-heroicons-exclamation-circle",
-        title:
-          "You don't have any App Credentials Registered, click on user icon to set one",
+        title: t("pages.app.modal.feedbacks.noApps"),
         color: "yellow",
       });
+      startTour();
     }
   }
 });
@@ -271,4 +391,9 @@ watch(
     deep: true,
   }
 );
+watch(showUserConfig, (newValue) => {
+  if (newValue === false) {
+    tour.complete();
+  }
+});
 </script>
