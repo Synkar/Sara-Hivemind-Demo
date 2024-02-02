@@ -5,10 +5,18 @@ import { axiosHandler } from "~/server/utils/axios";
 export default defineEventHandler(async (event) => {
   const axios = await axiosHandler(event);
   const locality = getRouterParam(event, "locality");
+  const query = getQuery(event);
+  const str =
+    "?" +
+    Object.keys(query)
+      .map((key) => {
+        return `${key}=${encodeURIComponent(query[key] as string)}`;
+      })
+      .join("&");
 
   try {
     const result = await axios.get(
-      `/v1/hivemind/localities/${locality}/landmarks/?limit=100`
+      `/v1/hivemind/localities/${locality}/landmarks/${str}`
     );
     if (result && result.data) {
       const response = result.data as PaginatedModel<LandmarksList>;

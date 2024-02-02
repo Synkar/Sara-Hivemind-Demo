@@ -49,6 +49,20 @@ import { z } from "zod";
 import type { FormSubmitEvent } from "#ui/types";
 import type { H3Error } from "h3";
 
+definePageMeta({
+  middleware: async function (_route) {
+    if (!useAuth().logged) {
+      try {
+        await useAuth().getMe();
+        useAuth().login();
+        return navigateTo("/dashboard");
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  },
+});
+
 const router = useRouter();
 const toast = useToast();
 const auth = useAuth();
@@ -71,10 +85,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       method: "POST",
       body: JSON.stringify(event.data),
     });
-    if (request && request.token) {
-      localStorage.setItem("token", request.token);
+    if (request) {
       const auth = useAuth();
-      auth.login(request.token);
+      auth.login();
       router.push("/dashboard");
     }
   } catch (e) {
@@ -95,15 +108,4 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     }
   }
 }
-
-onMounted(() => {
-  if (auth.logged) {
-    router.push("/dashboard");
-  } else {
-    const trylogin = auth.tryLogin();
-    if (trylogin) {
-      router.push("/dashboard");
-    }
-  }
-});
 </script>
