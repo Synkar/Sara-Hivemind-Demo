@@ -815,8 +815,17 @@ const generateMessage = async (message: SocketIO) => {
       case "ROBOT_SHUTDOWN": {
         return `[${robotName}]: Robot Shutdown`;
       }
+      case "DEPOT_STARTED": {
+        return `[${robotName}]: Robot is going to Depot`;
+      }
+      case "DEPOT_FINISHED": {
+        return `[${robotName}]: Robot has came to Depot`;
+      }
       default:
-        return `[UNKNOWN]: ${JSON.stringify(message.data)}`;
+        console.log(message);
+        return `[${$t(
+          "pages.dashboard.feedbacks.request.unknown"
+        )}]: ${JSON.stringify(message.data)}`;
     }
   } else {
     return `[LOG]: ${message.data}`;
