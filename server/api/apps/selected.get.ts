@@ -1,6 +1,5 @@
+import prisma from "~/server/utils/prisma";
 import { authToken } from "../../utils/authToken";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
   const jwtBody = await authToken(event);

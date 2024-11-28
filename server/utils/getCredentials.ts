@@ -1,6 +1,5 @@
 import nJwt from "njwt";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import prisma from "./prisma";
 
 export async function getCredentials(tokenDecoded: nJwt.JSONMap) {
   if (tokenDecoded && tokenDecoded.sub) {

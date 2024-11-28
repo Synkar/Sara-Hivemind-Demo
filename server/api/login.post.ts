@@ -1,8 +1,7 @@
 import { compareText } from "../utils/bcrypt";
-import { PrismaClient } from "@prisma/client";
 import nJwt from "njwt";
 import { addRefreshTokenCookie, addTokenCookie } from "../utils/authToken";
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
